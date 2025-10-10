@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(crm_env/Scripts/python:*)",
+      "Bash(crm_env/Scripts/flask run --host=0.0.0.0 --port=5000)",
+      "Bash(tasklist)",
+      "Bash(findstr:*)",
+      "Bash(if not exist \"uploads\" mkdir uploads)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

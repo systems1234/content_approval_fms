@@ -1,0 +1,14 @@
+{
+  "name": "task-audit-crm",
+  "version": "1.0.0",
+  "description": "Flask Task Assignment & Audit CRM",
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --minify",
+    "watch:css": "npx tailwindcss -i ./app/static/src/input.css -o ./app/static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32"
+  }
+}

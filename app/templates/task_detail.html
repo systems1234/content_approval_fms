@@ -1,0 +1,714 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }} - GemPundit CRM{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Back Button -->
+    <a href="{{ url_for('main.dashboard') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Dashboard
+    </a>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Task Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Task Header -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-md">
+                            {{ task.ticket_id }}
+                        </span>
+                    </div>
+                    <div class="flex items-start justify-between mb-4">
+                        <h1 class="text-3xl font-bold text-gray-900 flex-1">{{ task.title }}</h1>
+                        <span class="badge text-sm {{ task.get_status_badge_class() }}">
+                            {{ task.status.replace('_', ' ').title() }}
+                        </span>
+                    </div>
+
+                    {% if task.description %}
+                    <div class="prose max-w-none">
+                        <p class="text-gray-700 whitespace-pre-wrap">{{ task.description }}</p>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 italic">No description provided</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            {% if actions %}
+            <div class="card" x-data="{ showNotes: false, selectedAction: '', submissionType: 'document' }">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-gray-900">Available Actions</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.task_detail', task_id=task.id) }}" enctype="multipart/form-data" id="taskActionForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <div class="space-y-4">
+                            <!-- Action Buttons -->
+                            <div class="flex flex-wrap gap-3">
+                                {% for action in actions %}
+                                <button type="button"
+                                        @click="showNotes = true; selectedAction = '{{ action.action }}'"
+                                        class="btn {{ action.class }}">
+                                    {{ action.label }}
+                                </button>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Notes Modal/Panel -->
+                            <div x-show="showNotes"
+                                 x-transition
+                                 class="border-t border-gray-200 pt-4 mt-4">
+
+                                <!-- Document Submission (for Complete action only) -->
+                                <div x-show="selectedAction === 'complete'" class="mb-6 pb-6 border-b border-gray-200">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Submit Completed Work <span class="text-red-600">*</span></h3>
+
+                                    <!-- Submission Type Selection -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Choose submission method <span class="text-red-600">*</span></label>
+                                        <div class="flex gap-4 mt-2">
+                                            <label class="inline-flex items-center cursor-pointer">
+                                                <input type="radio"
+                                                       name="submission_type"
+                                                       value="document"
+                                                       x-model="submissionType"
+                                                       class="form-radio text-blue-600"
+                                                       :required="selectedAction === 'complete'">
+                                                <span class="ml-2">Document File</span>
+                                            </label>
+                                            <label class="inline-flex items-center cursor-pointer">
+                                                <input type="radio"
+                                                       name="submission_type"
+                                                       value="sheet_link"
+                                                       x-model="submissionType"
+                                                       class="form-radio text-blue-600"
+                                                       :required="selectedAction === 'complete'">
+                                                <span class="ml-2">Google Sheet Link</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Document File Upload -->
+                                    <div x-show="submissionType === 'document'" x-transition class="mb-4">
+                                        <label class="form-label">Upload Document <span class="text-red-600">*</span></label>
+                                        <input type="file"
+                                               name="document_file"
+                                               class="form-input"
+                                               accept=".pdf,.doc,.docx"
+                                               x-bind:required="selectedAction === 'complete' && submissionType === 'document'">
+                                        <p class="text-sm text-gray-500 mt-1">Accepted formats: PDF, DOC, DOCX. Maximum size: 10MB</p>
+                                    </div>
+
+                                    <!-- Google Sheet URL -->
+                                    <div x-show="submissionType === 'sheet_link'" x-transition class="mb-4">
+                                        <label class="form-label">Google Sheet URL <span class="text-red-600">*</span></label>
+                                        <input type="url"
+                                               name="sheet_url"
+                                               class="form-input"
+                                               placeholder="https://docs.google.com/spreadsheets/d/..."
+                                               x-bind:required="selectedAction === 'complete' && submissionType === 'sheet_link'">
+                                        <p class="text-sm text-gray-500 mt-1">Paste the full Google Sheets URL</p>
+                                    </div>
+                                </div>
+
+                                <label class="form-label">Notes (Optional)</label>
+                                <textarea name="notes"
+                                         class="form-input"
+                                         rows="3"
+                                         placeholder="Add any notes or comments about this action..."></textarea>
+
+                                <!-- New Completion Date for Rejection -->
+                                <div x-show="selectedAction === 'audit_fail'" class="mt-4">
+                                    <label class="form-label">New Completion Date <span class="text-red-500">*</span></label>
+                                    <input type="date"
+                                           name="new_completion_date"
+                                           class="form-input"
+                                           :required="selectedAction === 'audit_fail'">
+                                    <p class="text-sm text-gray-500 mt-1">Set a new deadline for task completion after rejection</p>
+                                </div>
+
+                                <input type="hidden" name="action" x-model="selectedAction">
+
+                                <div class="flex items-center gap-3 mt-4">
+                                    <button type="submit" class="btn btn-primary">
+                                        Confirm Action
+                                    </button>
+                                    <button type="button"
+                                            @click="showNotes = false; selectedAction = ''"
+                                            class="btn btn-outline">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Activity Log -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-gray-900">Activity Log</h2>
+                    <p class="text-sm text-gray-500 mt-1">Complete history of all actions and field changes</p>
+                </div>
+                <div class="card-body">
+                    {% if logs %}
+                    <div class="flow-root">
+                        <ul class="-mb-8">
+                            {% for log in logs %}
+                            <li>
+                                <div class="relative pb-8">
+                                    {% if not loop.last %}
+                                    <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"></span>
+                                    {% endif %}
+                                    <div class="relative flex space-x-3">
+                                        <div>
+                                            <span class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                                <svg class="h-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div>
+                                                <!-- User and Timestamp -->
+                                                <div class="flex items-baseline justify-between">
+                                                    <p class="text-sm text-gray-900 font-semibold">
+                                                        {{ log.user.username }}
+                                                        <span class="text-xs text-gray-500 font-normal ml-1">({{ log.user.role|capitalize }})</span>
+                                                    </p>
+                                                    <p class="text-xs text-gray-500">
+                                                        {{ log.timestamp.strftime('%b %d, %Y %H:%M') }}
+                                                    </p>
+                                                </div>
+
+                                                <!-- Action Description -->
+                                                <p class="text-sm text-gray-700 mt-1">
+                                                    {{ log.action }}
+                                                </p>
+
+                                                <!-- Field Change Details -->
+                                                {% if log.field_name and (log.previous_value or log.new_value) %}
+                                                <div class="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                                    <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Field Changed</p>
+                                                    <div class="space-y-1">
+                                                        <p class="text-sm">
+                                                            <span class="font-semibold text-gray-900">{{ log.get_field_label() }}</span>
+                                                        </p>
+                                                        <div class="flex items-center text-sm">
+                                                            {% if log.previous_value %}
+                                                            <span class="text-red-600 bg-red-50 px-2 py-0.5 rounded">{{ log.previous_value }}</span>
+                                                            {% else %}
+                                                            <span class="text-gray-400 italic px-2 py-0.5">(none)</span>
+                                                            {% endif %}
+
+                                                            <svg class="w-4 h-4 mx-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                                            </svg>
+
+                                                            {% if log.new_value %}
+                                                            <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded">{{ log.new_value }}</span>
+                                                            {% else %}
+                                                            <span class="text-gray-400 italic px-2 py-0.5">(removed)</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+
+                                                <!-- Notes/Comments -->
+                                                {% if log.notes %}
+                                                <div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                                    <p class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">Notes</p>
+                                                    <p class="text-sm text-gray-700 italic whitespace-pre-wrap">{{ log.notes }}</p>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-4">No activity yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Task Information (Collapsible) -->
+            <div class="card" x-data="{ taskInfoExpanded: localStorage.getItem('taskInfoExpanded') !== 'false' }"
+                 x-init="$watch('taskInfoExpanded', value => localStorage.setItem('taskInfoExpanded', value))">
+                <div class="card-header">
+                    <button type="button"
+                            @click="taskInfoExpanded = !taskInfoExpanded"
+                            class="w-full flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                            :aria-expanded="taskInfoExpanded.toString()"
+                            aria-controls="task-information">
+                        <h3 class="text-lg font-semibold text-gray-900">Task Information</h3>
+                        <svg class="w-5 h-5 text-gray-500 transition-transform duration-200"
+                             :class="{ 'transform rotate-180': taskInfoExpanded }"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="task-information"
+                     x-show="taskInfoExpanded"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform -translate-y-2"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 transform translate-y-0"
+                     x-transition:leave-end="opacity-0 transform -translate-y-2"
+                     class="card-body space-y-4"
+                     role="region"
+                     aria-labelledby="task-information-header">
+                    <!-- Ticket ID -->
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Ticket ID</p>
+                        <p class="text-lg font-mono font-bold text-blue-600">{{ task.ticket_id }}</p>
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    <!-- Assigned To -->
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Assigned To</p>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                                {{ task.assignee.username[0].upper() }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ task.assignee.username }}</p>
+                                <p class="text-xs text-gray-500 capitalize">{{ task.assignee.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auditor -->
+                    {% if task.auditor %}
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Auditor</p>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                                {{ task.auditor.username[0].upper() }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ task.auditor.username }}</p>
+                                <p class="text-xs text-gray-500 capitalize">{{ task.auditor.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Created By -->
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Created By</p>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                                {{ task.creator.username[0].upper() }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ task.creator.username }}</p>
+                                <p class="text-xs text-gray-500 capitalize">{{ task.creator.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    <!-- Dates -->
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Created At</p>
+                        <p class="text-sm text-gray-900">{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+
+                    {% if task.plan_date %}
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Planned Date</p>
+                        <p class="text-sm text-gray-900">{{ task.plan_date.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if task.completed_date %}
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Completed Date</p>
+                        <p class="text-sm text-gray-900">{{ task.completed_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if task.audit_date %}
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Audit Date</p>
+                        <p class="text-sm text-gray-900">{{ task.audit_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Revision Count -->
+                    {% if task.revision_count > 0 %}
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Revisions</p>
+                        <span class="badge bg-orange-100 text-orange-800">
+                            {{ task.revision_count }} revision{{ 's' if task.revision_count > 1 else '' }}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Audit Notes -->
+                    {% if task.audit_notes %}
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Audit Notes</p>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.audit_notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Submitted Document -->
+                    {% if task.submission_type %}
+                    <div>
+                        <hr class="border-gray-200 mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Submitted Work</p>
+                        {% if task.submission_type == 'document' %}
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-blue-900 truncate">{{ task.document_file_name }}</p>
+                                        <p class="text-xs text-blue-700">Document File</p>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('main.download_document', task_id=task.id) }}"
+                                   class="btn btn-primary btn-sm mt-3 w-full text-center">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                    </svg>
+                                    Download
+                                </a>
+                            </div>
+                        {% elif task.submission_type == 'sheet_link' %}
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                <div class="flex items-center mb-2">
+                                    <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
+                                    </svg>
+                                    <p class="text-sm font-medium text-green-900">Google Sheet</p>
+                                </div>
+                                <a href="{{ task.sheet_url }}"
+                                   target="_blank"
+                                   class="btn btn-primary btn-sm w-full text-center">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    Open Sheet
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Content Requirements (Collapsible) -->
+            {% if task.content_data %}
+            <div class="card" x-data="{ contentExpanded: localStorage.getItem('contentRequirements Expanded') === 'true' }"
+                 x-init="$watch('contentExpanded', value => localStorage.setItem('contentRequirementsExpanded', value))">
+                <div class="card-header">
+                    <button type="button"
+                            @click="contentExpanded = !contentExpanded"
+                            class="w-full flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                            aria-expanded="false"
+                            :aria-expanded="contentExpanded.toString()"
+                            aria-controls="content-requirements">
+                        <h3 class="text-lg font-semibold text-gray-900">Content Requirements</h3>
+                        <svg class="w-5 h-5 text-gray-500 transition-transform duration-200"
+                             :class="{ 'transform rotate-180': contentExpanded }"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="content-requirements"
+                     x-show="contentExpanded"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform -translate-y-2"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 transform translate-y-0"
+                     x-transition:leave-end="opacity-0 transform -translate-y-2"
+                     class="card-body space-y-6 bg-gray-50"
+                     role="region"
+                     aria-labelledby="content-requirements-header">
+
+                    <!-- Section 1: Basic Information -->
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-300">Basic Information</h4>
+                        <div class="space-y-3">
+                            {% if task.content_data.get('category_type') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Category Type</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.category_type }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('keyword') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Keyword</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.keyword }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('search_volume') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Search Volume</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.search_volume }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('meta_description') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Meta Description</p>
+                                <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.meta_description }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('faqs') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">FAQs</p>
+                                <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.faqs }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('internal_linking_keywords') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Internal Linking Keywords</p>
+                                <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.internal_linking_keywords }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('internal_link_urls') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Internal Link URLs</p>
+                                <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.internal_link_urls }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Category-Specific Fields -->
+                    {% if task.content_data.get('category_type') == 'Category' %}
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-300">Category-Specific Fields</h4>
+                        <div class="space-y-3">
+                            {% if task.content_data.get('page_type') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Page Type</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.page_type }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('category_name') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Category Name</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.category_name }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('url') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">URL</p>
+                                <p class="text-sm text-gray-900 break-all">{{ task.content_data.url }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('page_sv') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Page SV</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.page_sv }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('gemstone_category') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Gemstone Category</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.gemstone_category }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('type') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Type</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.type }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('recommended_density') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Recommended Density</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.recommended_density }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('word_count') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Word Count</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.word_count }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('title') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Title</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.title }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('astro_non_astro') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Astro/Non-Astro</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.astro_non_astro }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('internal_linking_keywords_sv') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Internal Linking Keywords SV</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.internal_linking_keywords_sv }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Section 3: Blog-Specific Fields -->
+                    {% if task.content_data.get('category_type') == 'Blog' %}
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-300">Blog-Specific Fields</h4>
+                        <div class="space-y-3">
+                            {% if task.content_data.get('blog_url') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Blog URL</p>
+                                <p class="text-sm text-gray-900 break-all">{{ task.content_data.blog_url }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('keyword_sv') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Keyword SV</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.keyword_sv }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('h1') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">H1</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.h1 }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('meta_title') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Meta Title</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.meta_title }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if task.content_data.get('content_structure_recommended') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Content Structure - Recommended</p>
+                                <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.content_structure_recommended }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Workflow Progress (Collapsible) -->
+            <div class="card" x-data="{ workflowExpanded: localStorage.getItem('workflowExpanded') !== 'false' }"
+                 x-init="$watch('workflowExpanded', value => localStorage.setItem('workflowExpanded', value))">
+                <div class="card-header">
+                    <button type="button"
+                            @click="workflowExpanded = !workflowExpanded"
+                            class="w-full flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                            :aria-expanded="workflowExpanded.toString()"
+                            aria-controls="workflow-progress">
+                        <h3 class="text-lg font-semibold text-gray-900">Workflow Progress</h3>
+                        <svg class="w-5 h-5 text-gray-500 transition-transform duration-200"
+                             :class="{ 'transform rotate-180': workflowExpanded }"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="workflow-progress"
+                     x-show="workflowExpanded"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform -translate-y-2"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 transform translate-y-0"
+                     x-transition:leave-end="opacity-0 transform -translate-y-2"
+                     class="card-body"
+                     role="region"
+                     aria-labelledby="workflow-progress-header">
+                    <div class="space-y-3">
+                        {% set workflow_states = ['assigned', 'in_progress', 'completed', 'under_audit', 'audit_passed'] %}
+                        {% set current_index = workflow_states.index(task.status) if task.status in workflow_states else -1 %}
+
+                        {% for state in workflow_states %}
+                        {% set state_index = loop.index0 %}
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                {% if state_index < current_index %}
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                {% elif state_index == current_index %}
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <div class="w-3 h-3 bg-white rounded-full"></div>
+                                </div>
+                                {% else %}
+                                <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <p class="text-sm font-medium {{ 'text-gray-900' if state_index <= current_index else 'text-gray-500' }}">
+                                    {{ state.replace('_', ' ').title() }}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+crm_env/
+env/
+venv/
+ENV/
+.env
+.venv
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+crm.db
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+docs/
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore

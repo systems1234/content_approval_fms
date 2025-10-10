@@ -1,0 +1,683 @@
+{% extends "base.html" %}
+
+{% block title %}Create Task - GemPundit CRM{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-6">
+        <a href="{{ url_for('main.dashboard') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium mb-2 inline-flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Dashboard
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900 mt-2">Create New Task</h1>
+        <p class="text-gray-600 mt-1">Create a content task with specific requirements</p>
+    </div>
+
+    <!-- Validation Summary (hidden by default) -->
+    <div id="validationSummary" class="card bg-red-50 border-red-200 mb-6" style="display: none;">
+        <div class="card-body p-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <ul id="validationErrorList" class="list-disc list-inside space-y-1"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Server-side Validation Errors -->
+    {% if form.errors %}
+    <div class="card bg-red-50 border-red-200 mb-6">
+        <div class="card-body p-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            {% for field, errors in form.errors.items() %}
+                                {% for error in errors %}
+                                    <li>{{ form[field].label.text }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Form Card -->
+    <div class="card">
+        <div class="card-body p-8">
+            <form method="POST" action="{{ url_for('main.create_task') }}" novalidate id="createTaskForm">
+                {{ form.hidden_tag() }}
+
+                <!-- Basic Task Information -->
+                <div class="mb-8 pb-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Task Details</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Task Title -->
+                        <div class="md:col-span-2">
+                            <label for="title" class="form-label">
+                                Task Title <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.title(class="form-input" + (" border-red-500" if form.title.errors else ""),
+                                         placeholder="Enter a clear, descriptive title",
+                                         required=true) }}
+                            {% if form.title.errors %}
+                                {% for error in form.title.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Comments/Notes -->
+                        <div class="md:col-span-2">
+                            <label for="description" class="form-label">
+                                Comments/Notes <span class="text-gray-400 text-sm">(Optional)</span>
+                            </label>
+                            {{ form.description(class="form-input" + (" border-red-500" if form.description.errors else ""),
+                                               rows="3",
+                                               placeholder="Add any additional comments or notes (Optional)") }}
+                            {% if form.description.errors %}
+                                {% for error in form.description.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                            <p class="text-sm text-gray-500 mt-1">Optional field for additional information</p>
+                        </div>
+
+                        <!-- Assign To -->
+                        <div>
+                            <label for="assigned_to" class="form-label">
+                                Assign To <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.assigned_to(class="form-input" + (" border-red-500" if form.assigned_to.errors else ""),
+                                               required=true) }}
+                            {% if form.assigned_to.errors %}
+                                {% for error in form.assigned_to.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Plan Date -->
+                        <div>
+                            <label for="plan_date" class="form-label">
+                                Planned Completion Date <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.plan_date(class="form-input" + (" border-red-500" if form.plan_date.errors else ""),
+                                             required=true) }}
+                            {% if form.plan_date.errors %}
+                                {% for error in form.plan_date.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 1: Basic Information -->
+                <div class="mb-8 pb-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Section 1: Basic Information</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Category Type -->
+                        <div>
+                            <label for="category_type" class="form-label">
+                                Category Type <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.category_type(class="form-input" + (" border-red-500" if form.category_type.errors else ""),
+                                                 id="category_type",
+                                                 required=true) }}
+                            {% if form.category_type.errors %}
+                                {% for error in form.category_type.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Keyword -->
+                        <div>
+                            <label for="keyword" class="form-label">
+                                Keyword <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.keyword(class="form-input" + (" border-red-500" if form.keyword.errors else ""),
+                                           placeholder="Enter keyword",
+                                           required=true) }}
+                            {% if form.keyword.errors %}
+                                {% for error in form.keyword.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Search Volume -->
+                        <div class="md:col-span-2">
+                            <label for="search_volume" class="form-label">
+                                Search Volume <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.search_volume(class="form-input" + (" border-red-500" if form.search_volume.errors else ""),
+                                                 placeholder="Enter search volume",
+                                                 required=true) }}
+                            {% if form.search_volume.errors %}
+                                {% for error in form.search_volume.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Meta Description -->
+                        <div class="md:col-span-2">
+                            <label for="meta_description" class="form-label">
+                                Meta Description <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.meta_description(class="form-input" + (" border-red-500" if form.meta_description.errors else ""),
+                                                    rows="2",
+                                                    placeholder="Enter meta description",
+                                                    required=true) }}
+                            {% if form.meta_description.errors %}
+                                {% for error in form.meta_description.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- FAQs -->
+                        <div class="md:col-span-2">
+                            <label for="faqs" class="form-label">
+                                FAQs <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.faqs(class="form-input" + (" border-red-500" if form.faqs.errors else ""),
+                                        rows="3",
+                                        placeholder="Enter FAQs",
+                                        required=true) }}
+                            {% if form.faqs.errors %}
+                                {% for error in form.faqs.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Internal Linking Keywords -->
+                        <div>
+                            <label for="internal_linking_keywords" class="form-label">
+                                Internal Linking Keywords <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.internal_linking_keywords(class="form-input" + (" border-red-500" if form.internal_linking_keywords.errors else ""),
+                                                             rows="2",
+                                                             placeholder="Enter internal linking keywords",
+                                                             required=true) }}
+                            {% if form.internal_linking_keywords.errors %}
+                                {% for error in form.internal_linking_keywords.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Internal Link URLs -->
+                        <div>
+                            <label for="internal_link_urls" class="form-label">
+                                Internal Link URLs <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.internal_link_urls(class="form-input" + (" border-red-500" if form.internal_link_urls.errors else ""),
+                                                      rows="2",
+                                                      placeholder="Enter internal link URLs",
+                                                      required=true) }}
+                            {% if form.internal_link_urls.errors %}
+                                {% for error in form.internal_link_urls.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: Category-Specific Fields -->
+                <div id="categorySection" class="mb-8 pb-6 border-b border-gray-200" style="display: none;">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Section 2: Category-Specific Fields <span class="text-sm text-red-600">(All fields required when Category is selected)</span></h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Page Type -->
+                        <div>
+                            <label for="page_type" class="form-label">
+                                Page Type <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.page_type(class="form-input category-field" + (" border-red-500" if form.page_type.errors else ""),
+                                             placeholder="Enter page type") }}
+                            {% if form.page_type.errors %}
+                                {% for error in form.page_type.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Category Name -->
+                        <div>
+                            <label for="category_name" class="form-label">
+                                Category Name <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.category_name(class="form-input category-field" + (" border-red-500" if form.category_name.errors else ""),
+                                                 placeholder="Enter category name") }}
+                            {% if form.category_name.errors %}
+                                {% for error in form.category_name.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- URL -->
+                        <div>
+                            <label for="url" class="form-label">
+                                URL <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.url(class="form-input category-field" + (" border-red-500" if form.url.errors else ""),
+                                       placeholder="Enter URL") }}
+                            {% if form.url.errors %}
+                                {% for error in form.url.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Page SV -->
+                        <div>
+                            <label for="page_sv" class="form-label">
+                                Page SV <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.page_sv(class="form-input category-field" + (" border-red-500" if form.page_sv.errors else ""),
+                                           placeholder="Enter page SV") }}
+                            {% if form.page_sv.errors %}
+                                {% for error in form.page_sv.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Gemstone Category -->
+                        <div>
+                            <label for="gemstone_category" class="form-label">
+                                Gemstone Category <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.gemstone_category(class="form-input category-field" + (" border-red-500" if form.gemstone_category.errors else ""),
+                                                     placeholder="Enter gemstone category") }}
+                            {% if form.gemstone_category.errors %}
+                                {% for error in form.gemstone_category.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Type -->
+                        <div>
+                            <label for="type_field" class="form-label">
+                                Type <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.type_field(class="form-input category-field" + (" border-red-500" if form.type_field.errors else ""),
+                                              placeholder="Enter type") }}
+                            {% if form.type_field.errors %}
+                                {% for error in form.type_field.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Recommended Density -->
+                        <div>
+                            <label for="recommended_density" class="form-label">
+                                Recommended Density <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.recommended_density(class="form-input category-field" + (" border-red-500" if form.recommended_density.errors else ""),
+                                                       placeholder="Enter recommended density") }}
+                            {% if form.recommended_density.errors %}
+                                {% for error in form.recommended_density.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Word Count -->
+                        <div>
+                            <label for="word_count" class="form-label">
+                                Word Count <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.word_count(class="form-input category-field" + (" border-red-500" if form.word_count.errors else ""),
+                                              placeholder="Enter word count") }}
+                            {% if form.word_count.errors %}
+                                {% for error in form.word_count.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Title -->
+                        <div class="md:col-span-2">
+                            <label for="title_field" class="form-label">
+                                Title <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.title_field(class="form-input category-field" + (" border-red-500" if form.title_field.errors else ""),
+                                               placeholder="Enter title") }}
+                            {% if form.title_field.errors %}
+                                {% for error in form.title_field.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Astro/Non-Astro -->
+                        <div>
+                            <label for="astro_non_astro" class="form-label">
+                                Astro/Non-Astro <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.astro_non_astro(class="form-input category-field" + (" border-red-500" if form.astro_non_astro.errors else "")) }}
+                            {% if form.astro_non_astro.errors %}
+                                {% for error in form.astro_non_astro.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Internal Linking Keywords SV -->
+                        <div>
+                            <label for="internal_linking_keywords_sv" class="form-label">
+                                Internal Linking Keywords SV <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.internal_linking_keywords_sv(class="form-input category-field" + (" border-red-500" if form.internal_linking_keywords_sv.errors else ""),
+                                                                placeholder="Enter keywords SV") }}
+                            {% if form.internal_linking_keywords_sv.errors %}
+                                {% for error in form.internal_linking_keywords_sv.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Blog-Specific Fields -->
+                <div id="blogSection" class="mb-8 pb-6 border-b border-gray-200" style="display: none;">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Section 3: Blog-Specific Fields <span class="text-sm text-red-600">(All fields required when Blog is selected)</span></h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Blog URL -->
+                        <div>
+                            <label for="blog_url" class="form-label">
+                                Blog URL <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.blog_url(class="form-input blog-field" + (" border-red-500" if form.blog_url.errors else ""),
+                                            placeholder="Enter blog URL") }}
+                            {% if form.blog_url.errors %}
+                                {% for error in form.blog_url.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Keyword SV -->
+                        <div>
+                            <label for="keyword_sv" class="form-label">
+                                Keyword SV <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.keyword_sv(class="form-input blog-field" + (" border-red-500" if form.keyword_sv.errors else ""),
+                                              placeholder="Enter keyword SV") }}
+                            {% if form.keyword_sv.errors %}
+                                {% for error in form.keyword_sv.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- H1 -->
+                        <div>
+                            <label for="h1" class="form-label">
+                                H1 <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.h1(class="form-input blog-field" + (" border-red-500" if form.h1.errors else ""),
+                                      placeholder="Enter H1 heading") }}
+                            {% if form.h1.errors %}
+                                {% for error in form.h1.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Meta Title -->
+                        <div>
+                            <label for="meta_title" class="form-label">
+                                Meta Title <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.meta_title(class="form-input blog-field" + (" border-red-500" if form.meta_title.errors else ""),
+                                              placeholder="Enter meta title") }}
+                            {% if form.meta_title.errors %}
+                                {% for error in form.meta_title.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Content Structure - Recommended -->
+                        <div class="md:col-span-2">
+                            <label for="content_structure_recommended" class="form-label">
+                                Content Structure - Recommended <span class="required-indicator text-red-600" style="display: none;">*</span>
+                            </label>
+                            {{ form.content_structure_recommended(class="form-input blog-field" + (" border-red-500" if form.content_structure_recommended.errors else ""),
+                                                                 rows="4",
+                                                                 placeholder="Enter recommended content structure") }}
+                            {% if form.content_structure_recommended.errors %}
+                                {% for error in form.content_structure_recommended.errors %}
+                                <p class="form-error">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end space-x-4 pt-6">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline">
+                        Cancel
+                    </a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('createTaskForm');
+    const categoryTypeSelect = document.getElementById('category_type');
+    const categorySection = document.getElementById('categorySection');
+    const blogSection = document.getElementById('blogSection');
+    const validationSummary = document.getElementById('validationSummary');
+    const validationErrorList = document.getElementById('validationErrorList');
+
+    // Toggle sections and required attributes based on category type
+    function toggleSections() {
+        const selectedValue = categoryTypeSelect.value;
+
+        if (selectedValue === 'Category') {
+            // Show category section, hide blog section
+            categorySection.style.display = 'block';
+            blogSection.style.display = 'none';
+
+            // Set required attribute and show asterisks for category fields
+            document.querySelectorAll('.category-field').forEach(field => {
+                field.setAttribute('required', 'required');
+            });
+            document.querySelectorAll('#categorySection .required-indicator').forEach(indicator => {
+                indicator.style.display = 'inline';
+            });
+
+            // Remove required attribute and hide asterisks for blog fields
+            document.querySelectorAll('.blog-field').forEach(field => {
+                field.removeAttribute('required');
+            });
+            document.querySelectorAll('#blogSection .required-indicator').forEach(indicator => {
+                indicator.style.display = 'none';
+            });
+
+        } else if (selectedValue === 'Blog') {
+            // Show blog section, hide category section
+            categorySection.style.display = 'none';
+            blogSection.style.display = 'block';
+
+            // Set required attribute and show asterisks for blog fields
+            document.querySelectorAll('.blog-field').forEach(field => {
+                field.setAttribute('required', 'required');
+            });
+            document.querySelectorAll('#blogSection .required-indicator').forEach(indicator => {
+                indicator.style.display = 'inline';
+            });
+
+            // Remove required attribute and hide asterisks for category fields
+            document.querySelectorAll('.category-field').forEach(field => {
+                field.removeAttribute('required');
+            });
+            document.querySelectorAll('#categorySection .required-indicator').forEach(indicator => {
+                indicator.style.display = 'none';
+            });
+
+        } else {
+            // Hide both sections
+            categorySection.style.display = 'none';
+            blogSection.style.display = 'none';
+
+            // Remove required attribute and hide asterisks from both
+            document.querySelectorAll('.category-field, .blog-field').forEach(field => {
+                field.removeAttribute('required');
+            });
+            document.querySelectorAll('#categorySection .required-indicator, #blogSection .required-indicator').forEach(indicator => {
+                indicator.style.display = 'none';
+            });
+        }
+    }
+
+    categoryTypeSelect.addEventListener('change', toggleSections);
+
+    // Initial check on page load
+    toggleSections();
+
+    // Client-side validation
+    form.addEventListener('submit', function(e) {
+        const errors = [];
+
+        // Clear previous error styling
+        document.querySelectorAll('.form-input').forEach(field => {
+            field.classList.remove('border-red-500');
+        });
+
+        // Validate all required fields that are visible
+        const requiredFields = form.querySelectorAll('[required]');
+
+        requiredFields.forEach(field => {
+            // Skip if field is in a hidden section
+            const parent = field.closest('#categorySection, #blogSection');
+            if (parent && parent.style.display === 'none') {
+                return;
+            }
+
+            // Check if field is empty
+            const isEmpty = field.value === '' || field.value === null ||
+                           (field.tagName === 'SELECT' && field.value === '') ||
+                           (field.type === 'text' && field.value.trim() === '') ||
+                           (field.type === 'number' && field.value === '') ||
+                           (field.tagName === 'TEXTAREA' && field.value.trim() === '');
+
+            if (isEmpty) {
+                const label = field.closest('div').querySelector('label');
+                const fieldName = label ? label.textContent.replace('*', '').replace('(Optional)', '').trim() : field.name;
+                errors.push(`${fieldName} is required`);
+                field.classList.add('border-red-500');
+            }
+        });
+
+        // Validate category type is selected
+        if (categoryTypeSelect.value === '') {
+            if (!errors.includes('Category Type is required')) {
+                errors.push('Category Type is required');
+                categoryTypeSelect.classList.add('border-red-500');
+            }
+        }
+
+        // If there are errors, prevent submission and show summary
+        if (errors.length > 0) {
+            e.preventDefault();
+
+            // Show validation summary
+            validationErrorList.innerHTML = '';
+            errors.forEach(error => {
+                const li = document.createElement('li');
+                li.textContent = error;
+                validationErrorList.appendChild(li);
+            });
+
+            validationSummary.style.display = 'block';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            return false;
+        }
+
+        // Hide validation summary if no errors
+        validationSummary.style.display = 'none';
+    });
+
+    // Real-time validation - remove error styling when user starts typing
+    form.querySelectorAll('.form-input').forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.value.trim() !== '') {
+                this.classList.remove('border-red-500');
+            }
+        });
+
+        field.addEventListener('change', function() {
+            if (this.value.trim() !== '' || (this.tagName === 'SELECT' && this.value !== '')) {
+                this.classList.remove('border-red-500');
+            }
+        });
+    });
+});
+</script>
+
+<style>
+/* Additional error styling */
+.form-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.border-red-500 {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2;
+}
+
+.border-red-500:focus {
+    border-color: #dc2626 !important;
+    ring-color: #dc2626 !important;
+}
+
+.required-indicator {
+    display: none;
+}
+</style>
+{% endblock %}
