@@ -117,7 +117,7 @@ def dashboard():
     # Get statistics
     stats = get_dashboard_stats()
 
-    return render_template('dashboard.html', tasks=tasks, stats=stats, status_filter=status_filter, search_query=search_query)
+    return render_template('dashboard.html', tasks=tasks, stats=stats, status_filter=status_filter, search_query=search_query, per_page=per_page)
 
 
 @main_bp.route('/create-task', methods=['GET', 'POST'])
