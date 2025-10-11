@@ -1,4 +1,4 @@
-# Task Assignment & Audit CRM
+# Gempundit CRM
 
 A Flask-based CRM system implementing a full task assignment and audit workflow using Tailwind CSS and ready for Google Cloud deployment.
 
