@@ -10,8 +10,8 @@ COPY package*.json ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
 
-# Install Node dependencies
-RUN npm ci --only=production
+# Install Node dependencies (including dev dependencies for build tools)
+RUN npm ci
 
 # Copy static source files
 COPY app/static/src ./app/static/src
@@ -44,19 +44,19 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY --chown=appuser:appuser requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir gunicorn
 
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY . .
 
 # Copy built Tailwind CSS from previous stage
-COPY --from=tailwind-builder --chown=appuser:appuser /app/app/static/css/output.css ./app/static/css/output.css
+COPY --from=tailwind-builder /app/app/static/css/output.css ./app/static/css/output.css
 
-# Create necessary directories
+# Create necessary directories and fix ownership
 RUN mkdir -p /app/instance && \
-    chown -R appuser:appuser /app/instance
+    chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
@@ -69,4 +69,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8080/', timeout=2)" || exit 1
 
 # Run with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "run:app"]
+# Using fewer workers and threads to reduce memory usage
+# Worker timeout increased to handle slow database connections
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "8", "--timeout", "120", "--worker-class", "gthread", "--worker-tmp-dir", "/dev/shm", "--graceful-timeout", "30", "--keep-alive", "5", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "run:app"]
