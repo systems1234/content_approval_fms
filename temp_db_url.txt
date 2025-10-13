@@ -1,1 +1,1 @@
-postgresql://content-username:GemPunditUser%402025@/content-crm-db?host=/cloudsql/mis-gempundit:asia-south2:flask-crm-db
+postgresql://content-username:GemPunditUser%402025@/crm_db?host=/cloudsql/mis-gempundit:asia-south2:flask-crm-db

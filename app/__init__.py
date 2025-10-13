@@ -31,8 +31,10 @@ def create_app(config_name='development'):
     app.register_blueprint(main_bp)
 
     # Create database tables
-    with app.app_context():
-        db.create_all()
+    # Note: Tables are created via migrations (migrate_db.py) during deployment
+    # Removing db.create_all() to prevent worker startup blocking on slow DB connections
+    # with app.app_context():
+    #     db.create_all()
 
     return app
 
