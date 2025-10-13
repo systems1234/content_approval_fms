@@ -53,8 +53,8 @@
 }
 
 /* Loading state for images */
-.login-logo[src*=".jpg"],
-.navbar-logo[src*=".jpg"] {
+.login-logo[src*=".png"],
+.navbar-logo[src*=".png"] {
     background-color: #f3f4f6;
 }
 

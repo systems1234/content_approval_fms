@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db
 from app.models import User, Task, TaskLog
-from app.forms import LoginForm, CreateTaskForm, TaskActionForm, AuditForm, CreateUserForm, UpdateTaskForm
+from app.forms import LoginForm, CreateTaskForm, TaskActionForm, AuditForm, CreateUserForm, UpdateTaskForm, UpdatePasswordForm
 from datetime import datetime
 from sqlalchemy import or_, and_
 import os
@@ -528,6 +528,28 @@ def delete_user(user_id):
 
     flash(f'User {username} has been deleted successfully.', 'success')
     return redirect(url_for('main.users'))
+
+
+@main_bp.route('/user/<int:user_id>/update-password', methods=['GET', 'POST'])
+@login_required
+def update_user_password(user_id):
+    """Update user password (Admin only)"""
+    if not current_user.is_admin():
+        flash('Access denied. Admins only.', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+    user = User.query.get_or_404(user_id)
+    form = UpdatePasswordForm()
+
+    if form.validate_on_submit():
+        # Update the user's password
+        user.set_password(form.new_password.data)
+        db.session.commit()
+
+        flash(f'Password for user {user.username} has been updated successfully!', 'success')
+        return redirect(url_for('main.users'))
+
+    return render_template('update_password.html', form=form, user=user)
 
 
 @main_bp.route('/task/<int:task_id>/download')

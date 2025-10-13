@@ -70,6 +70,10 @@
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {% if user.id != current_user.id %}
                             <div class="flex items-center justify-end gap-3">
+                                <a href="{{ url_for('main.update_user_password', user_id=user.id) }}"
+                                   class="text-indigo-600 hover:text-indigo-900">
+                                    Reset Password
+                                </a>
                                 <form method="POST" action="{{ url_for('main.toggle_user_status', user_id=user.id) }}" class="inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit"

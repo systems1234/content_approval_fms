@@ -180,3 +180,21 @@ class CreateUserForm(FlaskForm):
         ('admin', 'Admin')
     ], validators=[DataRequired()])
     submit = SubmitField('Create User')
+
+
+class UpdatePasswordForm(FlaskForm):
+    """Password update form (Admin only)"""
+    new_password = PasswordField('New Password', validators=[
+        DataRequired(message='New password is required'),
+        Length(min=8, message='Password must be at least 8 characters')
+    ])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(message='Please confirm the password'),
+        Length(min=8, message='Password must be at least 8 characters')
+    ])
+    submit = SubmitField('Update Password')
+
+    def validate_confirm_password(self, field):
+        """Validate that passwords match"""
+        if field.data != self.new_password.data:
+            raise ValidationError('Passwords must match')
