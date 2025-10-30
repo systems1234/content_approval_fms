@@ -91,7 +91,7 @@
                                                        x-model="submissionType"
                                                        class="form-radio text-blue-600"
                                                        :required="selectedAction === 'complete'">
-                                                <span class="ml-2">Google Sheet Link</span>
+                                                <span class="ml-2">Google Doc Link</span>
                                             </label>
                                         </div>
                                     </div>
@@ -107,15 +107,15 @@
                                         <p class="text-sm text-gray-500 mt-1">Accepted formats: PDF, DOC, DOCX. Maximum size: 10MB</p>
                                     </div>
 
-                                    <!-- Google Sheet URL -->
+                                    <!-- Google Doc URL -->
                                     <div x-show="submissionType === 'sheet_link'" x-transition class="mb-4">
-                                        <label class="form-label">Google Sheet URL <span class="text-red-600">*</span></label>
+                                        <label class="form-label">Google Doc URL <span class="text-red-600">*</span></label>
                                         <input type="url"
                                                name="sheet_url"
                                                class="form-input"
-                                               placeholder="https://docs.google.com/spreadsheets/d/..."
+                                               placeholder="https://docs.google.com/document/d/..."
                                                x-bind:required="selectedAction === 'complete' && submissionType === 'sheet_link'">
-                                        <p class="text-sm text-gray-500 mt-1">Paste the full Google Sheets URL</p>
+                                        <p class="text-sm text-gray-500 mt-1">Paste the full Google Docs URL</p>
                                     </div>
                                 </div>
 
@@ -410,7 +410,7 @@
                                     <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
                                     </svg>
-                                    <p class="text-sm font-medium text-green-900">Google Sheet</p>
+                                    <p class="text-sm font-medium text-green-900">Google Doc</p>
                                 </div>
                                 <a href="{{ task.sheet_url }}"
                                    target="_blank"
@@ -418,7 +418,7 @@
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                     </svg>
-                                    Open Sheet
+                                    Open Doc
                                 </a>
                             </div>
                         {% endif %}
@@ -466,22 +466,42 @@
                         <div class="space-y-3">
                             {% if task.content_data.get('category_type') %}
                             <div>
-                                <p class="text-xs font-medium text-gray-600 mb-0.5">Category Type</p>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Content Type</p>
                                 <p class="text-sm text-gray-900">{{ task.content_data.category_type }}</p>
                             </div>
                             {% endif %}
 
-                            {% if task.content_data.get('keyword') %}
+                            <!-- Content Metrics Table -->
+                            {% if task.content_data.get('content_metrics') %}
                             <div>
-                                <p class="text-xs font-medium text-gray-600 mb-0.5">Keyword</p>
-                                <p class="text-sm text-gray-900">{{ task.content_data.keyword }}</p>
+                                <p class="text-xs font-medium text-gray-600 mb-2">Content Metrics</p>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full border border-gray-300 rounded-lg text-sm">
+                                        <thead class="bg-gray-100">
+                                            <tr>
+                                                <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Type</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Keyword</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Search Volume</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for metric in task.content_data.content_metrics %}
+                                            <tr>
+                                                <td class="border border-gray-300 px-3 py-2 text-gray-900">{{ metric.type }}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-gray-900">{{ metric.keyword }}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-gray-900">{{ metric.search_volume }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             {% endif %}
 
-                            {% if task.content_data.get('search_volume') %}
+                            {% if task.content_data.get('title') %}
                             <div>
-                                <p class="text-xs font-medium text-gray-600 mb-0.5">Search Volume</p>
-                                <p class="text-sm text-gray-900">{{ task.content_data.search_volume }}</p>
+                                <p class="text-xs font-medium text-gray-600 mb-0.5">Meta Title</p>
+                                <p class="text-sm text-gray-900">{{ task.content_data.title }}</p>
                             </div>
                             {% endif %}
 
@@ -492,24 +512,37 @@
                             </div>
                             {% endif %}
 
+                            <!-- Linking Data Table -->
+                            {% if task.content_data.get('linking_data') %}
+                            <div>
+                                <p class="text-xs font-medium text-gray-600 mb-2">Linking Data</p>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full border border-gray-300 rounded-lg text-sm">
+                                        <thead class="bg-gray-100">
+                                            <tr>
+                                                <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Internal Linking Keywords</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Internal Link URLs</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Internal Linking Keywords SV</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for link in task.content_data.linking_data %}
+                                            <tr>
+                                                <td class="border border-gray-300 px-3 py-2 text-gray-900">{{ link.internal_linking_keywords }}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-gray-900 break-all">{{ link.internal_link_urls }}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-gray-900">{{ link.internal_linking_keywords_sv }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
                             {% if task.content_data.get('faqs') %}
                             <div>
                                 <p class="text-xs font-medium text-gray-600 mb-0.5">FAQs</p>
                                 <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.faqs }}</p>
-                            </div>
-                            {% endif %}
-
-                            {% if task.content_data.get('internal_linking_keywords') %}
-                            <div>
-                                <p class="text-xs font-medium text-gray-600 mb-0.5">Internal Linking Keywords</p>
-                                <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.internal_linking_keywords }}</p>
-                            </div>
-                            {% endif %}
-
-                            {% if task.content_data.get('internal_link_urls') %}
-                            <div>
-                                <p class="text-xs font-medium text-gray-600 mb-0.5">Internal Link URLs</p>
-                                <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ task.content_data.internal_link_urls }}</p>
                             </div>
                             {% endif %}
                         </div>

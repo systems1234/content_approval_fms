@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, SelectField, DateField, SubmitField, IntegerField, ValidationError
-from wtforms.validators import DataRequired, Email, Length, Optional
+from wtforms import StringField, PasswordField, TextAreaField, SelectField, DateField, SubmitField, IntegerField, ValidationError, BooleanField, TimeField, FloatField
+from wtforms.validators import DataRequired, Email, Length, Optional, NumberRange
 from datetime import date
 
 class LoginForm(FlaskForm):
@@ -34,34 +34,42 @@ class CreateTaskForm(FlaskForm):
     ], format='%Y-%m-%d')
 
     # SECTION 1: Basic Information
-    category_type = SelectField('Category Type', choices=[
-        ('', 'Select Category Type'),
+    category_type = SelectField('Content Type', choices=[
+        ('', 'Select Content Type'),
         ('Category', 'Category'),
         ('Blog', 'Blog')
-    ], validators=[DataRequired(message='Category type is required')])
-    keyword = StringField('Keyword', validators=[DataRequired(message='Keyword is required')])
-    search_volume = StringField('Search Volume', validators=[DataRequired(message='Search volume is required')])
+    ], validators=[DataRequired(message='Content type is required')])
+
+    # Note: Content Metrics (type, keyword, search_volume) and Linking Data
+    # (internal_linking_keywords, internal_link_urls, internal_linking_keywords_sv)
+    # are now handled as dynamic arrays via JavaScript tables in the template
+
+    title_field = StringField('Meta Title', validators=[
+        DataRequired(message='Meta Title is required'),
+        Length(min=10, max=200, message='Meta Title must be between 10 and 200 characters')
+    ])
     meta_description = TextAreaField('Meta Description', validators=[DataRequired(message='Meta description is required')])
     faqs = TextAreaField('FAQs', validators=[DataRequired(message='FAQs is required')])
-    internal_linking_keywords = TextAreaField('Internal Linking Keywords', validators=[DataRequired(message='Internal linking keywords is required')])
-    internal_link_urls = TextAreaField('Internal Link URLs', validators=[DataRequired(message='Internal link URLs is required')])
 
     # SECTION 2: Category-Specific Fields (conditionally required)
     page_type = StringField('Page Type', validators=[Optional()])
     category_name = StringField('Category Name', validators=[Optional()])
     url = StringField('URL', validators=[Optional()])
     page_sv = StringField('Page SV', validators=[Optional()])
-    gemstone_category = StringField('Gemstone Category', validators=[Optional()])
-    type_field = StringField('Type', validators=[Optional()])
+    gemstone_category = SelectField('Gemstone Category', choices=[
+        ('', 'Select Gemstone Category'),
+        ('0-ultraprecious', '0-ultraprecious'),
+        ('1-precious', '1-precious'),
+        ('2-midPrecious', '2-midPrecious'),
+        ('4-semiPrecious', '4-semiPrecious')
+    ], validators=[Optional()])
     recommended_density = StringField('Recommended Density', validators=[Optional()])
     word_count = IntegerField('Word Count', validators=[Optional()])
-    title_field = StringField('Title', validators=[Optional()])
     astro_non_astro = SelectField('Astro/Non-Astro', choices=[
         ('', 'Select Type'),
         ('Astro', 'Astro'),
         ('Non-Astro', 'Non-Astro')
     ], validators=[Optional()])
-    internal_linking_keywords_sv = StringField('Internal Linking Keywords SV', validators=[Optional()])
 
     # SECTION 3: Blog-Specific Fields (conditionally required)
     blog_url = StringField('Blog URL', validators=[Optional()])
@@ -88,12 +96,9 @@ class CreateTaskForm(FlaskForm):
                 (self.url, 'URL'),
                 (self.page_sv, 'Page SV'),
                 (self.gemstone_category, 'Gemstone Category'),
-                (self.type_field, 'Type'),
                 (self.recommended_density, 'Recommended Density'),
                 (self.word_count, 'Word Count'),
-                (self.title_field, 'Title'),
-                (self.astro_non_astro, 'Astro/Non-Astro'),
-                (self.internal_linking_keywords_sv, 'Internal Linking Keywords SV')
+                (self.astro_non_astro, 'Astro/Non-Astro')
             ]
 
             for field, field_name in category_fields:
@@ -198,3 +203,69 @@ class UpdatePasswordForm(FlaskForm):
         """Validate that passwords match"""
         if field.data != self.new_password.data:
             raise ValidationError('Passwords must match')
+
+
+class HolidayForm(FlaskForm):
+    """Holiday management form (Admin only)"""
+    date = DateField('Holiday Date', validators=[
+        DataRequired(message='Holiday date is required')
+    ], format='%Y-%m-%d')
+    name = StringField('Holiday Name', validators=[
+        DataRequired(message='Holiday name is required'),
+        Length(min=2, max=200, message='Name must be between 2 and 200 characters')
+    ])
+    description = TextAreaField('Description', validators=[
+        Optional(),
+        Length(max=500, message='Description must not exceed 500 characters')
+    ])
+    is_recurring = BooleanField('Recurring Yearly', default=False)
+    submit = SubmitField('Save Holiday')
+
+
+class BusinessHoursForm(FlaskForm):
+    """Business hours configuration form (Admin only)"""
+    day_of_week = SelectField('Day of Week', coerce=int, choices=[
+        (0, 'Monday'),
+        (1, 'Tuesday'),
+        (2, 'Wednesday'),
+        (3, 'Thursday'),
+        (4, 'Friday'),
+        (5, 'Saturday'),
+        (6, 'Sunday')
+    ], validators=[DataRequired()])
+    start_time = TimeField('Start Time', validators=[
+        DataRequired(message='Start time is required')
+    ], format='%H:%M')
+    end_time = TimeField('End Time', validators=[
+        DataRequired(message='End time is required')
+    ], format='%H:%M')
+    is_working_day = BooleanField('Is Working Day', default=True)
+    submit = SubmitField('Save Business Hours')
+
+    def validate_end_time(self, field):
+        """Validate that end time is after start time"""
+        if self.is_working_day.data and field.data <= self.start_time.data:
+            raise ValidationError('End time must be after start time')
+
+
+class StepTemplateForm(FlaskForm):
+    """Workflow step template form (Admin only)"""
+    name = StringField('Step Name', validators=[
+        DataRequired(message='Step name is required'),
+        Length(min=2, max=200, message='Name must be between 2 and 200 characters')
+    ])
+    description = TextAreaField('Description', validators=[
+        Optional(),
+        Length(max=500, message='Description must not exceed 500 characters')
+    ])
+    step_order = IntegerField('Step Order', validators=[
+        DataRequired(message='Step order is required'),
+        NumberRange(min=1, message='Step order must be at least 1')
+    ])
+    tat_hours = FloatField('TAT (Hours)', validators=[
+        DataRequired(message='TAT is required'),
+        NumberRange(min=0.5, max=720, message='TAT must be between 0.5 and 720 hours (30 days)')
+    ])
+    requires_audit = BooleanField('Requires Audit', default=True)
+    is_active = BooleanField('Is Active', default=True)
+    submit = SubmitField('Save Step Template')

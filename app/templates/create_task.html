@@ -134,15 +134,16 @@
                     </div>
                 </div>
 
+
                 <!-- SECTION 1: Basic Information -->
                 <div class="mb-8 pb-6 border-b border-gray-200">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4">Section 1: Basic Information</h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Category Type -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Content Type -->
                         <div>
                             <label for="category_type" class="form-label">
-                                Category Type <span class="text-red-600">*</span>
+                                Content Type <span class="text-red-600">*</span>
                             </label>
                             {{ form.category_type(class="form-input" + (" border-red-500" if form.category_type.errors else ""),
                                                  id="category_type",
@@ -154,38 +155,69 @@
                             {% endif %}
                         </div>
 
-                        <!-- Keyword -->
+                        <!-- Table 1: Content Metrics -->
                         <div>
-                            <label for="keyword" class="form-label">
-                                Keyword <span class="text-red-600">*</span>
-                            </label>
-                            {{ form.keyword(class="form-input" + (" border-red-500" if form.keyword.errors else ""),
-                                           placeholder="Enter keyword",
-                                           required=true) }}
-                            {% if form.keyword.errors %}
-                                {% for error in form.keyword.errors %}
-                                <p class="form-error">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="form-label mb-0">
+                                    Content Metrics <span class="text-red-600">*</span>
+                                </label>
+                                <button type="button" id="addMetricRow" class="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                                    + Add Row
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full border border-gray-300 rounded-lg">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Type <span class="text-red-600">*</span></th>
+                                            <th class="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Keyword <span class="text-red-600">*</span></th>
+                                            <th class="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Search Volume <span class="text-red-600">*</span></th>
+                                            <th class="border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700" style="width: 80px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="metricsTableBody">
+                                        <!-- Dynamic rows will be added here -->
+                                        <tr class="metric-row">
+                                            <td class="border border-gray-300 px-2 py-2">
+                                                <select name="type[]" class="form-input w-full metric-type" required>
+                                                    <option value="">Select Type</option>
+                                                    <option value="Primary">Primary</option>
+                                                    <option value="Secondary">Secondary</option>
+                                                </select>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2">
+                                                <input type="text" name="keyword[]" class="form-input w-full metric-keyword" placeholder="Enter keyword" required>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2">
+                                                <input type="text" name="search_volume[]" class="form-input w-full metric-sv" placeholder="Enter search volume" required>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center">
+                                                <button type="button" class="removeMetricRow text-red-600 hover:text-red-800 font-semibold">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">Add multiple rows for different keywords and their metrics.</p>
                         </div>
 
-                        <!-- Search Volume -->
-                        <div class="md:col-span-2">
-                            <label for="search_volume" class="form-label">
-                                Search Volume <span class="text-red-600">*</span>
+                        <!-- Meta Title -->
+                        <div>
+                            <label for="title_field" class="form-label">
+                                Meta Title <span class="text-red-600">*</span>
                             </label>
-                            {{ form.search_volume(class="form-input" + (" border-red-500" if form.search_volume.errors else ""),
-                                                 placeholder="Enter search volume",
-                                                 required=true) }}
-                            {% if form.search_volume.errors %}
-                                {% for error in form.search_volume.errors %}
+                            {{ form.title_field(class="form-input" + (" border-red-500" if form.title_field.errors else ""),
+                                               placeholder="Enter meta title",
+                                               required=true) }}
+                            {% if form.title_field.errors %}
+                                {% for error in form.title_field.errors %}
                                 <p class="form-error">{{ error }}</p>
                                 {% endfor %}
                             {% endif %}
                         </div>
 
                         <!-- Meta Description -->
-                        <div class="md:col-span-2">
+                        <div>
                             <label for="meta_description" class="form-label">
                                 Meta Description <span class="text-red-600">*</span>
                             </label>
@@ -200,8 +232,50 @@
                             {% endif %}
                         </div>
 
+                        <!-- Table 2: Linking Data -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="form-label mb-0">
+                                    Linking Data <span class="text-red-600">*</span>
+                                </label>
+                                <button type="button" id="addLinkingRow" class="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                                    + Add Row
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full border border-gray-300 rounded-lg">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Internal Linking Keywords <span class="text-red-600">*</span></th>
+                                            <th class="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Internal Link URLs <span class="text-red-600">*</span></th>
+                                            <th class="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Internal Linking Keywords SV <span class="text-red-600">*</span></th>
+                                            <th class="border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700" style="width: 80px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="linkingTableBody">
+                                        <!-- Dynamic rows will be added here -->
+                                        <tr class="linking-row">
+                                            <td class="border border-gray-300 px-2 py-2">
+                                                <input type="text" name="internal_linking_keywords[]" class="form-input w-full linking-keywords" placeholder="Enter keywords" required>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2">
+                                                <input type="text" name="internal_link_urls[]" class="form-input w-full linking-urls" placeholder="Enter URLs" required>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2">
+                                                <input type="text" name="internal_linking_keywords_sv[]" class="form-input w-full linking-sv" placeholder="Enter SV" required>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center">
+                                                <button type="button" class="removeLinkingRow text-red-600 hover:text-red-800 font-semibold">Remove</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">Add multiple rows for different internal linking strategies.</p>
+                        </div>
+
                         <!-- FAQs -->
-                        <div class="md:col-span-2">
+                        <div>
                             <label for="faqs" class="form-label">
                                 FAQs <span class="text-red-600">*</span>
                             </label>
@@ -211,38 +285,6 @@
                                         required=true) }}
                             {% if form.faqs.errors %}
                                 {% for error in form.faqs.errors %}
-                                <p class="form-error">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
-                        <!-- Internal Linking Keywords -->
-                        <div>
-                            <label for="internal_linking_keywords" class="form-label">
-                                Internal Linking Keywords <span class="text-red-600">*</span>
-                            </label>
-                            {{ form.internal_linking_keywords(class="form-input" + (" border-red-500" if form.internal_linking_keywords.errors else ""),
-                                                             rows="2",
-                                                             placeholder="Enter internal linking keywords",
-                                                             required=true) }}
-                            {% if form.internal_linking_keywords.errors %}
-                                {% for error in form.internal_linking_keywords.errors %}
-                                <p class="form-error">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
-                        <!-- Internal Link URLs -->
-                        <div>
-                            <label for="internal_link_urls" class="form-label">
-                                Internal Link URLs <span class="text-red-600">*</span>
-                            </label>
-                            {{ form.internal_link_urls(class="form-input" + (" border-red-500" if form.internal_link_urls.errors else ""),
-                                                      rows="2",
-                                                      placeholder="Enter internal link URLs",
-                                                      required=true) }}
-                            {% if form.internal_link_urls.errors %}
-                                {% for error in form.internal_link_urls.errors %}
                                 <p class="form-error">{{ error }}</p>
                                 {% endfor %}
                             {% endif %}
@@ -316,24 +358,9 @@
                             <label for="gemstone_category" class="form-label">
                                 Gemstone Category <span class="required-indicator text-red-600" style="display: none;">*</span>
                             </label>
-                            {{ form.gemstone_category(class="form-input category-field" + (" border-red-500" if form.gemstone_category.errors else ""),
-                                                     placeholder="Enter gemstone category") }}
+                            {{ form.gemstone_category(class="form-input category-field" + (" border-red-500" if form.gemstone_category.errors else "")) }}
                             {% if form.gemstone_category.errors %}
                                 {% for error in form.gemstone_category.errors %}
-                                <p class="form-error">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
-                        <!-- Type -->
-                        <div>
-                            <label for="type_field" class="form-label">
-                                Type <span class="required-indicator text-red-600" style="display: none;">*</span>
-                            </label>
-                            {{ form.type_field(class="form-input category-field" + (" border-red-500" if form.type_field.errors else ""),
-                                              placeholder="Enter type") }}
-                            {% if form.type_field.errors %}
-                                {% for error in form.type_field.errors %}
                                 <p class="form-error">{{ error }}</p>
                                 {% endfor %}
                             {% endif %}
@@ -367,20 +394,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Title -->
-                        <div class="md:col-span-2">
-                            <label for="title_field" class="form-label">
-                                Title <span class="required-indicator text-red-600" style="display: none;">*</span>
-                            </label>
-                            {{ form.title_field(class="form-input category-field" + (" border-red-500" if form.title_field.errors else ""),
-                                               placeholder="Enter title") }}
-                            {% if form.title_field.errors %}
-                                {% for error in form.title_field.errors %}
-                                <p class="form-error">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
                         <!-- Astro/Non-Astro -->
                         <div>
                             <label for="astro_non_astro" class="form-label">
@@ -389,20 +402,6 @@
                             {{ form.astro_non_astro(class="form-input category-field" + (" border-red-500" if form.astro_non_astro.errors else "")) }}
                             {% if form.astro_non_astro.errors %}
                                 {% for error in form.astro_non_astro.errors %}
-                                <p class="form-error">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
-                        <!-- Internal Linking Keywords SV -->
-                        <div>
-                            <label for="internal_linking_keywords_sv" class="form-label">
-                                Internal Linking Keywords SV <span class="required-indicator text-red-600" style="display: none;">*</span>
-                            </label>
-                            {{ form.internal_linking_keywords_sv(class="form-input category-field" + (" border-red-500" if form.internal_linking_keywords_sv.errors else ""),
-                                                                placeholder="Enter keywords SV") }}
-                            {% if form.internal_linking_keywords_sv.errors %}
-                                {% for error in form.internal_linking_keywords_sv.errors %}
                                 <p class="form-error">{{ error }}</p>
                                 {% endfor %}
                             {% endif %}
@@ -509,7 +508,115 @@ document.addEventListener('DOMContentLoaded', function() {
     const validationSummary = document.getElementById('validationSummary');
     const validationErrorList = document.getElementById('validationErrorList');
 
+    // ===================================================================
+    // DYNAMIC TABLE 1: Content Metrics Management
+    // ===================================================================
+    const metricsTableBody = document.getElementById('metricsTableBody');
+    const addMetricRowBtn = document.getElementById('addMetricRow');
+
+    // Function to create a new metric row
+    function createMetricRow() {
+        const row = document.createElement('tr');
+        row.className = 'metric-row';
+        row.innerHTML = `
+            <td class="border border-gray-300 px-2 py-2">
+                <select name="type[]" class="form-input w-full metric-type" required>
+                    <option value="">Select Type</option>
+                    <option value="Primary">Primary</option>
+                    <option value="Secondary">Secondary</option>
+                </select>
+            </td>
+            <td class="border border-gray-300 px-2 py-2">
+                <input type="text" name="keyword[]" class="form-input w-full metric-keyword" placeholder="Enter keyword" required>
+            </td>
+            <td class="border border-gray-300 px-2 py-2">
+                <input type="text" name="search_volume[]" class="form-input w-full metric-sv" placeholder="Enter search volume" required>
+            </td>
+            <td class="border border-gray-300 px-2 py-2 text-center">
+                <button type="button" class="removeMetricRow text-red-600 hover:text-red-800 font-semibold">Remove</button>
+            </td>
+        `;
+        return row;
+    }
+
+    // Add new metric row
+    addMetricRowBtn.addEventListener('click', function() {
+        const newRow = createMetricRow();
+        metricsTableBody.appendChild(newRow);
+        attachMetricRowListeners();
+    });
+
+    // Remove metric row
+    function attachMetricRowListeners() {
+        document.querySelectorAll('.removeMetricRow').forEach(button => {
+            button.onclick = function() {
+                const rows = metricsTableBody.querySelectorAll('.metric-row');
+                if (rows.length > 1) {
+                    this.closest('tr').remove();
+                } else {
+                    alert('At least one metric row is required.');
+                }
+            };
+        });
+    }
+
+    // Initial attachment
+    attachMetricRowListeners();
+
+    // ===================================================================
+    // DYNAMIC TABLE 2: Linking Data Management
+    // ===================================================================
+    const linkingTableBody = document.getElementById('linkingTableBody');
+    const addLinkingRowBtn = document.getElementById('addLinkingRow');
+
+    // Function to create a new linking row
+    function createLinkingRow() {
+        const row = document.createElement('tr');
+        row.className = 'linking-row';
+        row.innerHTML = `
+            <td class="border border-gray-300 px-2 py-2">
+                <input type="text" name="internal_linking_keywords[]" class="form-input w-full linking-keywords" placeholder="Enter keywords" required>
+            </td>
+            <td class="border border-gray-300 px-2 py-2">
+                <input type="text" name="internal_link_urls[]" class="form-input w-full linking-urls" placeholder="Enter URLs" required>
+            </td>
+            <td class="border border-gray-300 px-2 py-2">
+                <input type="text" name="internal_linking_keywords_sv[]" class="form-input w-full linking-sv" placeholder="Enter SV" required>
+            </td>
+            <td class="border border-gray-300 px-2 py-2 text-center">
+                <button type="button" class="removeLinkingRow text-red-600 hover:text-red-800 font-semibold">Remove</button>
+            </td>
+        `;
+        return row;
+    }
+
+    // Add new linking row
+    addLinkingRowBtn.addEventListener('click', function() {
+        const newRow = createLinkingRow();
+        linkingTableBody.appendChild(newRow);
+        attachLinkingRowListeners();
+    });
+
+    // Remove linking row
+    function attachLinkingRowListeners() {
+        document.querySelectorAll('.removeLinkingRow').forEach(button => {
+            button.onclick = function() {
+                const rows = linkingTableBody.querySelectorAll('.linking-row');
+                if (rows.length > 1) {
+                    this.closest('tr').remove();
+                } else {
+                    alert('At least one linking row is required.');
+                }
+            };
+        });
+    }
+
+    // Initial attachment
+    attachLinkingRowListeners();
+
+    // ===================================================================
     // Toggle sections and required attributes based on category type
+    // ===================================================================
     function toggleSections() {
         const selectedValue = categoryTypeSelect.value;
 
@@ -575,7 +682,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial check on page load
     toggleSections();
 
+    // ===================================================================
     // Client-side validation
+    // ===================================================================
     form.addEventListener('submit', function(e) {
         const errors = [];
 
@@ -584,10 +693,65 @@ document.addEventListener('DOMContentLoaded', function() {
             field.classList.remove('border-red-500');
         });
 
-        // Validate all required fields that are visible
+        // Validate Content Metrics Table (at least one row with all fields filled)
+        const metricRows = metricsTableBody.querySelectorAll('.metric-row');
+        if (metricRows.length === 0) {
+            errors.push('At least one Content Metric row is required');
+        } else {
+            metricRows.forEach((row, index) => {
+                const type = row.querySelector('.metric-type');
+                const keyword = row.querySelector('.metric-keyword');
+                const sv = row.querySelector('.metric-sv');
+
+                if (!type.value) {
+                    errors.push(`Content Metrics Row ${index + 1}: Type is required`);
+                    type.classList.add('border-red-500');
+                }
+                if (!keyword.value.trim()) {
+                    errors.push(`Content Metrics Row ${index + 1}: Keyword is required`);
+                    keyword.classList.add('border-red-500');
+                }
+                if (!sv.value.trim()) {
+                    errors.push(`Content Metrics Row ${index + 1}: Search Volume is required`);
+                    sv.classList.add('border-red-500');
+                }
+            });
+        }
+
+        // Validate Linking Data Table (at least one row with all fields filled)
+        const linkingRows = linkingTableBody.querySelectorAll('.linking-row');
+        if (linkingRows.length === 0) {
+            errors.push('At least one Linking Data row is required');
+        } else {
+            linkingRows.forEach((row, index) => {
+                const keywords = row.querySelector('.linking-keywords');
+                const urls = row.querySelector('.linking-urls');
+                const sv = row.querySelector('.linking-sv');
+
+                if (!keywords.value.trim()) {
+                    errors.push(`Linking Data Row ${index + 1}: Keywords are required`);
+                    keywords.classList.add('border-red-500');
+                }
+                if (!urls.value.trim()) {
+                    errors.push(`Linking Data Row ${index + 1}: URLs are required`);
+                    urls.classList.add('border-red-500');
+                }
+                if (!sv.value.trim()) {
+                    errors.push(`Linking Data Row ${index + 1}: SV is required`);
+                    sv.classList.add('border-red-500');
+                }
+            });
+        }
+
+        // Validate all other required fields that are visible
         const requiredFields = form.querySelectorAll('[required]');
 
         requiredFields.forEach(field => {
+            // Skip table fields (already validated above)
+            if (field.name.includes('[]')) {
+                return;
+            }
+
             // Skip if field is in a hidden section
             const parent = field.closest('#categorySection, #blogSection');
             if (parent && parent.style.display === 'none') {
@@ -611,8 +775,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validate category type is selected
         if (categoryTypeSelect.value === '') {
-            if (!errors.includes('Category Type is required')) {
-                errors.push('Category Type is required');
+            if (!errors.includes('Content Type is required')) {
+                errors.push('Content Type is required');
                 categoryTypeSelect.classList.add('border-red-500');
             }
         }

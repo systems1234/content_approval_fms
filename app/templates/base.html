@@ -20,7 +20,7 @@
                              alt="GemPundit CRM Logo"
                              class="navbar-logo"
                              style="height: 40px; width: auto;">
-                        <span class="text-2xl font-bold text-blue-600">GemPundit CRM</span>
+                        <span class="text-2xl font-bold text-blue-600">GemPundit FMS</span>
                     </a>
                     <div class="hidden md:ml-10 md:flex md:space-x-8">
                         <a href="{{ url_for('main.dashboard') }}"
@@ -31,6 +31,10 @@
                         <a href="{{ url_for('main.create_task') }}"
                            class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
                             Create Task
+                        </a>
+                        <a href="{{ url_for('main.reports') }}"
+                           class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
+                            Reports
                         </a>
                         {% endif %}
                         {% if current_user.is_auditor() %}
@@ -76,6 +80,10 @@
                 <a href="{{ url_for('main.create_task') }}"
                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
                     Create Task
+                </a>
+                <a href="{{ url_for('main.reports') }}"
+                   class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
+                    Reports
                 </a>
                 {% endif %}
                 {% if current_user.is_auditor() %}
