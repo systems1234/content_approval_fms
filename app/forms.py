@@ -75,7 +75,6 @@ class CreateTaskForm(FlaskForm):
     blog_url = StringField('Blog URL', validators=[Optional()])
     keyword_sv = StringField('Keyword SV', validators=[Optional()])
     h1 = StringField('H1', validators=[Optional()])
-    meta_title = StringField('Meta Title', validators=[Optional()])
     content_structure_recommended = TextAreaField('Content Structure - Recommended', validators=[Optional()])
 
     submit = SubmitField('Create Task')
@@ -112,7 +111,6 @@ class CreateTaskForm(FlaskForm):
                 (self.blog_url, 'Blog URL'),
                 (self.keyword_sv, 'Keyword SV'),
                 (self.h1, 'H1'),
-                (self.meta_title, 'Meta Title'),
                 (self.content_structure_recommended, 'Content Structure - Recommended')
             ]
 

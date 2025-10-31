@@ -456,20 +456,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Meta Title -->
-                        <div>
-                            <label for="meta_title" class="form-label">
-                                Meta Title <span class="required-indicator text-red-600" style="display: none;">*</span>
-                            </label>
-                            {{ form.meta_title(class="form-input blog-field" + (" border-red-500" if form.meta_title.errors else ""),
-                                              placeholder="Enter meta title") }}
-                            {% if form.meta_title.errors %}
-                                {% for error in form.meta_title.errors %}
-                                <p class="form-error">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
                         <!-- Content Structure - Recommended -->
                         <div class="md:col-span-2">
                             <label for="content_structure_recommended" class="form-label">

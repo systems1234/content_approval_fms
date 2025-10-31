@@ -384,7 +384,6 @@ def create_task():
                 'blog_url': form.blog_url.data,
                 'keyword_sv': form.keyword_sv.data,
                 'h1': form.h1.data,
-                'meta_title': form.meta_title.data,
                 'content_structure_recommended': form.content_structure_recommended.data,
             })
 
