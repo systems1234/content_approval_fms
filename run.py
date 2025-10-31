@@ -2,7 +2,7 @@ import os
 from app import create_app, db
 from app.models import User, Task, TaskLog
 
-app = create_app(os.getenv('FLASK_ENV') or 'development')
+app = create_app(os.getenv('FLASK_ENV') or 'production')
 
 @app.shell_context_processor
 def make_shell_context():
