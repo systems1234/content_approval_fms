@@ -218,7 +218,7 @@ substitutions:
   _UPLOAD_BUCKET: 'mis-gempundit-flask-crm-uploads'
 
   # Resource Limits
-  _MEMORY: '2Gi'
+  _MEMORY: '4Gi'
   _CPU: '2'
   _MIN_INSTANCES: '1'
   _MAX_INSTANCES: '10'
