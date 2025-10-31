@@ -69,6 +69,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8080/', timeout=2)" || exit 1
 
 # Run with gunicorn
-# Using fewer workers and threads to reduce memory usage
-# Worker timeout increased to handle slow database connections
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "8", "--timeout", "120", "--worker-class", "gthread", "--worker-tmp-dir", "/dev/shm", "--graceful-timeout", "30", "--keep-alive", "5", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "run:app"]
+# Using single worker with increased timeout to prevent worker timeouts
+# Preload app to load application code before worker processes are forked
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "--timeout", "300", "--worker-class", "gthread", "--worker-tmp-dir", "/dev/shm", "--graceful-timeout", "120", "--keep-alive", "5", "--preload", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "debug", "run:app"]
