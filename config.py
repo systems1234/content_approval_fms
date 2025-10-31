@@ -15,6 +15,16 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'sqlite:///crm.db'
 
+    # SQLAlchemy engine options for Cloud Run
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 5,
+        'pool_recycle': 300,
+        'pool_pre_ping': True,
+        'connect_args': {
+            'connect_timeout': 10,
+        }
+    }
+
     # Flask-WTF configuration
     WTF_CSRF_ENABLED = True
 
