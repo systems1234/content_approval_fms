@@ -19,10 +19,7 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 5,
         'pool_recycle': 300,
-        'pool_pre_ping': True,
-        'connect_args': {
-            'connect_timeout': 10,
-        }
+        'pool_pre_ping': True
     }
 
     # Flask-WTF configuration
