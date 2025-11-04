@@ -15,6 +15,9 @@ def create_app(config_name='development'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
+    # Add built-in functions to Jinja2 environment
+    app.jinja_env.globals.update(min=min, max=max)
+
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
