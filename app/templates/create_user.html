@@ -54,10 +54,10 @@
                 <!-- Password -->
                 <div class="mb-6">
                     <label for="password" class="form-label">
-                        Password <span class="text-red-600">*</span>
+                        Password <span class="text-gray-400 text-xs">(leave blank for Google SSO only)</span>
                     </label>
                     {{ form.password(class="form-input" + (" border-red-500" if form.password.errors else ""),
-                                    placeholder="Enter password (min 8 characters)") }}
+                                    placeholder="Min 8 characters, or blank for SSO-only") }}
                     {% if form.password.errors %}
                         {% for error in form.password.errors %}
                         <p class="form-error">{{ error }}</p>

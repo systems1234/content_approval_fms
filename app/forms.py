@@ -173,12 +173,14 @@ class CreateUserForm(FlaskForm):
         DataRequired(message='Email is required'),
         Email(message='Invalid email address')
     ])
-    password = PasswordField('Password', validators=[
-        DataRequired(message='Password is required'),
+    password = PasswordField('Password (leave blank for Google-SSO-only accounts)', validators=[
+        Optional(),
         Length(min=8, message='Password must be at least 8 characters')
     ])
     role = SelectField('Role', choices=[
-        ('assignee', 'Assignee'),
+        ('assignee', 'Assignee (Doer)'),
+        ('approver', 'Approver (Vivek)'),
+        ('auditor', 'Auditor'),
         ('manager', 'Manager'),
         ('admin', 'Admin')
     ], validators=[DataRequired()])

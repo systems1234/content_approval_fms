@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Holiday Management - FMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Holiday Management</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage holidays for business date calculations</p>
+        </div>
+        <a href="{{ url_for('main.create_holiday') }}" class="btn btn-primary">
+            <svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Holiday
+        </a>
+    </div>
+
+    <!-- Holidays Table -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        {% if holidays %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Holiday Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recurring</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for holiday in holidays %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ holiday.date.strftime('%Y-%m-%d') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ holiday.name }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {{ holiday.description if holiday.description else '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {% if holiday.is_recurring %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                Yearly
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                                One-time
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{{ url_for('main.edit_holiday', holiday_id=holiday.id) }}"
+                               class="text-blue-600 hover:text-blue-800 mr-3">
+                                Edit
+                            </a>
+                            <form method="POST" action="{{ url_for('main.delete_holiday', holiday_id=holiday.id) }}"
+                                  class="inline-block"
+                                  onsubmit="return confirm('Are you sure you want to delete this holiday?');">
+                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No holidays configured</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by adding a new holiday.</p>
+            <div class="mt-6">
+                <a href="{{ url_for('main.create_holiday') }}" class="btn btn-primary">
+                    Add Holiday
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Back Link -->
+    <div class="flex justify-start">
+        <a href="{{ url_for('main.dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm">
+            &larr; Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

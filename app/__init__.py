@@ -1,14 +1,12 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
+from authlib.integrations.flask_client import OAuth
 from config import config
 
-db = SQLAlchemy()
 login_manager = LoginManager()
-migrate = Migrate()
 csrf = CSRFProtect()
+oauth = OAuth()
 
 def create_app(config_name='development'):
     """Application factory pattern"""
@@ -19,10 +17,21 @@ def create_app(config_name='development'):
     app.jinja_env.globals.update(min=min, max=max)
 
     # Initialize extensions
-    db.init_app(app)
     login_manager.init_app(app)
-    migrate.init_app(app, db)
     csrf.init_app(app)
+    oauth.init_app(app)
+
+    if app.config['GOOGLE_SSO_ENABLED']:
+        oauth.register(
+            name='google',
+            client_id=app.config['GOOGLE_CLIENT_ID'],
+            client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+            client_kwargs={'scope': 'openid email profile'},
+        )
+
+    from app.bigquery_store import BigQueryStore
+    app.extensions['bigquery_store'] = BigQueryStore(app)
 
     # Configure login manager
     login_manager.login_view = 'main.login'
@@ -30,18 +39,12 @@ def create_app(config_name='development'):
     login_manager.login_message_category = 'warning'
 
     # Import and register blueprints
-    from app.routes import main_bp
+    from app.routes_bigquery import main_bp
     app.register_blueprint(main_bp)
-
-    # Create database tables
-    # Note: Tables are created via migrations (migrate_db.py) during deployment
-    # Removing db.create_all() to prevent worker startup blocking on slow DB connections
-    # with app.app_context():
-    #     db.create_all()
 
     return app
 
 @login_manager.user_loader
 def load_user(user_id):
-    from app.models import User
-    return User.query.get(int(user_id))
+    from flask import current_app
+    return current_app.extensions['bigquery_store'].user(user_id=int(user_id))

@@ -1,0 +1,815 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Reports - GemPundit FMS{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">
+            {% if is_personal_view %}
+            My Performance Report
+            {% else %}
+            Performance Reports
+            {% endif %}
+        </h1>
+        <p class="text-gray-600 mt-1">
+            {% if is_personal_view %}
+            Your personal performance metrics and improvement insights
+            {% else %}
+            Track completion rates, delays, and team performance
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card mb-6">
+        <div class="card-body p-6">
+            <form method="GET" action="{{ url_for('main.reports') }}" class="flex flex-wrap items-end gap-4">
+                <div class="flex-1 min-w-[200px]">
+                    <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        Start Date
+                    </label>
+                    <input type="date"
+                           id="start_date"
+                           name="start_date"
+                           value="{{ start_date }}"
+                           class="form-input w-full">
+                </div>
+
+                <div class="flex-1 min-w-[200px]">
+                    <label for="end_date" class="block text-sm font-medium text-gray-700 mb-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        End Date
+                    </label>
+                    <input type="date"
+                           id="end_date"
+                           name="end_date"
+                           value="{{ end_date }}"
+                           class="form-input w-full">
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary px-6 py-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        Apply Filter
+                    </button>
+                    {% if start_date or end_date %}
+                    <a href="{{ url_for('main.reports') }}" class="btn btn-outline px-6 py-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Clear Filter
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+
+            {% if start_date or end_date %}
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm text-blue-800 font-medium">
+                        Showing data from
+                        {% if start_date %}{{ start_date }}{% else %}earliest{% endif %}
+                        to
+                        {% if end_date %}{{ end_date }}{% else %}latest{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if is_personal_view and personal_stats %}
+    <!-- My Performance Scorecard (Personalized for Assignees) -->
+    <div class="card mb-8 border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div class="card-body p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+                        <svg class="w-7 h-7 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                        </svg>
+                        My Performance Scorecard
+                    </h2>
+                    <p class="text-sm text-gray-600 mt-1">Your overall performance rating and key metrics</p>
+                </div>
+            </div>
+
+            <!-- Performance Score & Grade -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Overall Score -->
+                <div class="col-span-1 lg:col-span-1 bg-white rounded-xl shadow-sm p-6 text-center border-2 border-blue-100">
+                    <div class="text-sm font-medium text-gray-600 mb-2">Overall Performance Score</div>
+                    <div class="text-6xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">
+                        {{ personal_stats.overall_score }}%
+                    </div>
+                    <div class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold
+                        {% if personal_stats.overall_score >= 90 %}bg-green-100 text-green-800
+                        {% elif personal_stats.overall_score >= 80 %}bg-blue-100 text-blue-800
+                        {% elif personal_stats.overall_score >= 70 %}bg-yellow-100 text-yellow-800
+                        {% elif personal_stats.overall_score >= 60 %}bg-orange-100 text-orange-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {% if personal_stats.overall_score >= 90 %}🌟
+                        {% elif personal_stats.overall_score >= 80 %}⭐
+                        {% elif personal_stats.overall_score >= 70 %}👍
+                        {% elif personal_stats.overall_score >= 60 %}📊
+                        {% else %}📈{% endif %}
+                        {{ personal_stats.performance_grade }}
+                    </div>
+                    <div class="mt-3 text-xs text-gray-500" title="Weighted: 70% completion + 30% audit performance">
+                        Based on on-time completion and audit rates
+                    </div>
+                </div>
+
+                <!-- Key Metrics Grid -->
+                <div class="col-span-1 lg:col-span-2 grid grid-cols-2 gap-4">
+                    <!-- Total Assigned -->
+                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-medium text-gray-500 uppercase">Total Assigned</div>
+                                <div class="text-3xl font-bold text-gray-900 mt-2">{{ personal_stats.total_assigned }}</div>
+                                <div class="text-xs text-gray-600 mt-1">Tasks in period</div>
+                            </div>
+                            <div class="bg-blue-100 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Completed -->
+                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-medium text-gray-500 uppercase">Completed</div>
+                                <div class="text-3xl font-bold text-green-600 mt-2">{{ personal_stats.total_completed }}</div>
+                                <div class="text-xs text-gray-600 mt-1">Tasks done</div>
+                            </div>
+                            <div class="bg-green-100 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completion On-Time -->
+                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-medium text-gray-500 uppercase">On-Time Completion</div>
+                                <div class="text-3xl font-bold text-green-600 mt-2">{{ personal_stats.completion_on_time }}</div>
+                                <div class="text-xs text-gray-600 mt-1">Before deadline</div>
+                            </div>
+                            <div class="bg-green-100 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completion Delayed -->
+                    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-medium text-gray-500 uppercase">Delayed Completion</div>
+                                <div class="text-3xl font-bold text-red-600 mt-2">{{ personal_stats.completion_delayed }}</div>
+                                <div class="text-xs text-gray-600 mt-1">
+                                    {% if personal_stats.average_completion_delay > 0 %}
+                                    Avg {{ personal_stats.average_completion_delay }}d late
+                                    {% else %}
+                                    After deadline
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="bg-red-100 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bars for Completion & Audit Rates -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Completion Rate Progress -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-900">Task Completion Rate</h3>
+                        <span class="text-2xl font-bold {% if personal_stats.completion_rate >= 80 %}text-green-600{% elif personal_stats.completion_rate >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ personal_stats.completion_rate }}%
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+                        <div class="h-full rounded-full transition-all duration-700 ease-out
+                            {% if personal_stats.completion_rate >= 80 %}bg-gradient-to-r from-green-400 to-green-600
+                            {% elif personal_stats.completion_rate >= 60 %}bg-gradient-to-r from-yellow-400 to-yellow-600
+                            {% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}"
+                             style="width: {{ personal_stats.completion_rate }}%">
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between text-xs text-gray-600">
+                        <span title="Tasks completed before the planned date">{{ personal_stats.completion_on_time }} on-time</span>
+                        <span>{{ personal_stats.completion_delayed }} delayed</span>
+                    </div>
+                </div>
+
+                <!-- Audit Rate Progress -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-900">Audit Completion Rate</h3>
+                        <span class="text-2xl font-bold {% if personal_stats.audit_rate >= 80 %}text-green-600{% elif personal_stats.audit_rate >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ personal_stats.audit_rate }}%
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+                        <div class="h-full rounded-full transition-all duration-700 ease-out
+                            {% if personal_stats.audit_rate >= 80 %}bg-gradient-to-r from-green-400 to-green-600
+                            {% elif personal_stats.audit_rate >= 60 %}bg-gradient-to-r from-yellow-400 to-yellow-600
+                            {% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}"
+                             style="width: {{ personal_stats.audit_rate }}%">
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between text-xs text-gray-600">
+                        <span title="Tasks audited within 1 day TAT">{{ personal_stats.audit_on_time }} on-time</span>
+                        <span>{{ personal_stats.audit_delayed }} delayed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Motivational Message -->
+            <div class="mt-6 p-4 rounded-lg
+                {% if personal_stats.overall_score >= 90 %}bg-green-50 border border-green-200
+                {% elif personal_stats.overall_score >= 80 %}bg-blue-50 border border-blue-200
+                {% elif personal_stats.overall_score >= 70 %}bg-yellow-50 border border-yellow-200
+                {% else %}bg-orange-50 border border-orange-200{% endif %}">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-5 h-5 {% if personal_stats.overall_score >= 90 %}text-green-600{% elif personal_stats.overall_score >= 80 %}text-blue-600{% elif personal_stats.overall_score >= 70 %}text-yellow-600{% else %}text-orange-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium {% if personal_stats.overall_score >= 90 %}text-green-800{% elif personal_stats.overall_score >= 80 %}text-blue-800{% elif personal_stats.overall_score >= 70 %}text-yellow-800{% else %}text-orange-800{% endif %}">
+                            {% if personal_stats.overall_score >= 90 %}
+                            Outstanding work! You're consistently delivering exceptional results. Keep up the excellent performance!
+                            {% elif personal_stats.overall_score >= 80 %}
+                            Great job! You're performing very well. Focus on maintaining this strong performance level.
+                            {% elif personal_stats.overall_score >= 70 %}
+                            Good progress! You're on the right track. Look for opportunities to improve on-time completion rates.
+                            {% elif personal_stats.overall_score >= 60 %}
+                            You're meeting basic expectations. Consider strategies to complete tasks before deadlines more consistently.
+                            {% else %}
+                            There's room for improvement. Focus on planning and time management to boost your on-time completion rate.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Overall Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Tasks -->
+        <div class="card">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">
+                            Total Tasks
+                            {% if has_filter %}
+                            <span class="ml-1 text-xs text-blue-600">(Filtered)</span>
+                            {% endif %}
+                        </p>
+                        <p class="text-3xl font-bold text-gray-900 mt-2">{{ overall_stats.total_tasks }}</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">{{ overall_stats.total_completed }} completed</p>
+            </div>
+        </div>
+
+        <!-- On-Time Rate -->
+        <div class="card">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">On-Time Rate</p>
+                        <p class="text-3xl font-bold text-green-600 mt-2">{{ overall_stats.overall_on_time_rate }}%</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">{{ overall_stats.completion_on_time }} on-time</p>
+            </div>
+        </div>
+
+        <!-- Delayed Tasks -->
+        <div class="card">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Delayed Tasks</p>
+                        <p class="text-3xl font-bold text-red-600 mt-2">{{ overall_stats.completion_delayed }}</p>
+                    </div>
+                    <div class="bg-red-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Avg {{ overall_stats.average_completion_delay }} days late</p>
+            </div>
+        </div>
+
+        <!-- Audit Performance -->
+        <div class="card">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Audit Performance</p>
+                        <p class="text-3xl font-bold text-yellow-600 mt-2">{{ overall_stats.audit_on_time }}</p>
+                    </div>
+                    <div class="bg-yellow-100 rounded-full p-3">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">{{ overall_stats.audit_delayed }} delayed audits</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion vs Audit Performance - Table Layout -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-xl font-semibold text-gray-900">
+                {% if is_personal_view %}
+                My Completion vs Audit Performance
+                {% else %}
+                Completion vs Audit Performance
+                {% endif %}
+                {% if has_filter %}
+                <span class="ml-2 text-sm font-normal text-blue-600">(Filtered Data)</span>
+                {% endif %}
+            </h2>
+            <p class="text-sm text-gray-500 mt-1">
+                {% if is_personal_view %}
+                Your side-by-side task completion and audit performance metrics
+                {% else %}
+                Side-by-side comparison of task completion and audit performance
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body p-0">
+            {% set completion_total = overall_stats.completion_on_time + overall_stats.completion_delayed %}
+            {% set audit_total = overall_stats.audit_on_time + overall_stats.audit_delayed %}
+            {% set completion_rate = (overall_stats.completion_on_time / completion_total * 100)|round if completion_total > 0 else 0 %}
+            {% set audit_rate = (overall_stats.audit_on_time / audit_total * 100)|round if audit_total > 0 else 0 %}
+
+            <!-- Responsive Table Wrapper -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                                Metric
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-green-700 uppercase tracking-wider border-r border-gray-200 bg-green-50" title="Tasks completed/audited on time">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span>On-Time</span>
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-red-700 uppercase tracking-wider border-r border-gray-200 bg-red-50" title="Tasks completed/audited after deadline">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span>Delayed</span>
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200" title="Total tasks">
+                                Total
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider" title="Percentage of tasks completed/audited on time">
+                                On-Time %
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Completion Performance Row -->
+                        <tr class="hover:bg-blue-50 transition-colors">
+                            <td class="px-6 py-6 whitespace-nowrap border-r border-gray-200">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-gray-900">Task Completion</div>
+                                        <div class="text-xs text-gray-500" title="Tasks completed vs planned date">Completed by plan date</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-center border-r border-gray-200 bg-green-50/50">
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-3xl font-bold text-green-700">{{ overall_stats.completion_on_time }}</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            On-Time
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-600">Completed before deadline</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-center border-r border-gray-200 bg-red-50/50">
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-3xl font-bold text-red-700">{{ overall_stats.completion_delayed }}</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Delayed
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-600">
+                                        {% if overall_stats.average_completion_delay > 0 %}
+                                        Avg {{ overall_stats.average_completion_delay }} days late
+                                        {% else %}
+                                        After deadline
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-center border-r border-gray-200">
+                                <div class="text-3xl font-bold text-gray-900">{{ completion_total }}</div>
+                                <div class="text-xs text-gray-500 mt-1">Tasks</div>
+                            </td>
+                            <td class="px-6 py-6">
+                                <div class="flex flex-col items-center space-y-3">
+                                    <div class="text-3xl font-bold {% if completion_rate >= 80 %}text-green-600{% elif completion_rate >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                        {{ completion_rate }}%
+                                    </div>
+                                    <div class="w-full max-w-xs">
+                                        <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
+                                            <span>Progress</span>
+                                            <span>{{ completion_rate }}% on-time</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                                            <div class="h-full rounded-full transition-all duration-700 ease-out {% if completion_rate >= 80 %}bg-gradient-to-r from-green-400 to-green-600{% elif completion_rate >= 60 %}bg-gradient-to-r from-yellow-400 to-yellow-600{% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}"
+                                                 style="width: {{ completion_rate }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Audit Performance Row -->
+                        <tr class="hover:bg-purple-50 transition-colors">
+                            <td class="px-6 py-6 whitespace-nowrap border-r border-gray-200">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-gray-900">Audit Performance</div>
+                                        <div class="text-xs text-gray-500" title="Audits completed within 1 day TAT">1-day TAT standard</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-center border-r border-gray-200 bg-green-50/50">
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-3xl font-bold text-green-700">{{ overall_stats.audit_on_time }}</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            On-Time
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-600">Audited within 1 day</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-center border-r border-gray-200 bg-orange-50/50">
+                                <div class="flex flex-col items-center space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-3xl font-bold text-orange-700">{{ overall_stats.audit_delayed }}</span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Delayed
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-600">
+                                        {% if overall_stats.average_audit_delay > 0 %}
+                                        Avg {{ overall_stats.average_audit_delay }} days late
+                                        {% else %}
+                                        After 1 day
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-center border-r border-gray-200">
+                                <div class="text-3xl font-bold text-gray-900">{{ audit_total }}</div>
+                                <div class="text-xs text-gray-500 mt-1">Tasks</div>
+                            </td>
+                            <td class="px-6 py-6">
+                                <div class="flex flex-col items-center space-y-3">
+                                    <div class="text-3xl font-bold {% if audit_rate >= 80 %}text-green-600{% elif audit_rate >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                        {{ audit_rate }}%
+                                    </div>
+                                    <div class="w-full max-w-xs">
+                                        <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
+                                            <span>Progress</span>
+                                            <span>{{ audit_rate }}% on-time</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                                            <div class="h-full rounded-full transition-all duration-700 ease-out {% if audit_rate >= 80 %}bg-gradient-to-r from-green-400 to-green-600{% elif audit_rate >= 60 %}bg-gradient-to-r from-yellow-400 to-yellow-600{% else %}bg-gradient-to-r from-red-400 to-red-600{% endif %}"
+                                                 style="width: {{ audit_rate }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Legend/Footer -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex flex-wrap items-center justify-between gap-4 text-xs text-gray-600">
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                            <span>Excellent (≥80%)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                            <span>Good (60-79%)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                            <span>Needs Improvement (&lt;60%)</span>
+                        </div>
+                    </div>
+                    <div class="text-gray-500">
+                        <span class="font-semibold">Note:</span> Audit TAT is 1 calendar day from task completion
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignee-Wise Performance Table (Only for Managers/Admins) -->
+    {% if not is_personal_view %}
+    <div class="card mb-8">
+        <div class="card-header">
+            <h2 class="text-xl font-semibold text-gray-900">
+                Assignee-Wise Performance
+                {% if has_filter %}
+                <span class="ml-2 text-sm font-normal text-blue-600">(Filtered Data)</span>
+                {% endif %}
+            </h2>
+            <p class="text-sm text-gray-500 mt-1">
+                {% if has_filter %}
+                Performance metrics for the selected date range
+                {% else %}
+                Individual performance metrics for all team members
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Assigned</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">On-Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delayed</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Delay</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">On-Time Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for assignee in assignee_report %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm">
+                                        {{ assignee.assignee_name[0].upper() }}
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">{{ assignee.assignee_name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ assignee.total_assigned }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ assignee.total_completed }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    {{ assignee.completion_on_time }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    {{ assignee.completion_delayed }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% if assignee.average_delay_days > 0 %}
+                                {{ assignee.average_delay_days }} days
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium {% if assignee.completion_rate >= 80 %}text-green-600{% elif assignee.completion_rate >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                        {{ assignee.completion_rate }}%
+                                    </span>
+                                    <div class="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                                        <div class="{% if assignee.completion_rate >= 80 %}bg-green-500{% elif assignee.completion_rate >= 60 %}bg-yellow-500{% else %}bg-red-500{% endif %} h-2 rounded-full" style="width: {{ assignee.completion_rate }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filtered Completed Tasks -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="text-xl font-semibold text-gray-900">
+                {% if is_personal_view %}
+                    {% if has_filter %}
+                    My Filtered Completed Tasks
+                    {% else %}
+                    My Completed Tasks
+                    {% endif %}
+                {% else %}
+                    {% if has_filter %}
+                    Filtered Completed Tasks
+                    {% else %}
+                    All Completed Tasks
+                    {% endif %}
+                {% endif %}
+            </h2>
+            <p class="text-sm text-gray-500 mt-1">
+                {% if is_personal_view %}
+                    {% if has_filter %}
+                    Showing {{ total_filtered_tasks }} of your task{{ 's' if total_filtered_tasks != 1 else '' }} matching the selected date range
+                    {% else %}
+                    Showing all {{ total_filtered_tasks }} of your completed task{{ 's' if total_filtered_tasks != 1 else '' }} with performance details
+                    {% endif %}
+                {% else %}
+                    {% if has_filter %}
+                    Showing {{ total_filtered_tasks }} task{{ 's' if total_filtered_tasks != 1 else '' }} matching the selected date range
+                    {% else %}
+                    Showing all {{ total_filtered_tasks }} completed task{{ 's' if total_filtered_tasks != 1 else '' }} with performance details
+                    {% endif %}
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-body p-0">
+            {% if total_filtered_tasks > 0 %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Audit Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in filtered_tasks %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <a href="{{ url_for('main.task_detail', task_id=item.task.id) }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                                    {{ item.task.ticket_id }}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ item.task.title[:50] }}{% if item.task.title|length > 50 %}...{% endif %}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ item.task.assignee.username if item.task.assignee else '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ item.task.plan_date.strftime('%Y-%m-%d') if item.task.plan_date else '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ item.task.completed_date.strftime('%Y-%m-%d') if item.task.completed_date else '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if item.performance.completion_status == 'on-time' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    ✓ On-Time
+                                </span>
+                                {% elif item.performance.completion_status == 'delayed' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    ⚠ Delayed ({{ item.performance.completion_delay_days }}d)
+                                </span>
+                                {% else %}
+                                <span class="text-xs text-gray-500">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if item.performance.audit_status == 'on-time' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    ✓ On-Time
+                                </span>
+                                {% elif item.performance.audit_status == 'delayed' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    ⚠ Delayed ({{ item.performance.audit_delay_days }}d)
+                                </span>
+                                {% else %}
+                                <span class="text-xs text-gray-500">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No completed tasks found</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if has_filter %}
+                    No tasks match the selected date range. Try adjusting your filter.
+                    {% else %}
+                    There are no completed tasks in the system yet.
+                    {% endif %}
+                </p>
+                {% if has_filter %}
+                <div class="mt-6">
+                    <a href="{{ url_for('main.reports') }}" class="btn btn-primary">
+                        Clear Filter
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

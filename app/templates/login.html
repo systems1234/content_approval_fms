@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - GemPundit CRM</title>
+    <title>Login - GemPundit</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css', v='1.0') }}">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -35,7 +35,7 @@
                              class="login-logo"
                              style="width: 150px; height: auto;">
                     </div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Gempundit CRM</h1>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Gempundit</h1>
                     <!-- <p class="text-gray-600">Task Assignment & Audit System</p> -->
                 </div>
 
@@ -72,6 +72,18 @@
                         Sign In
                     </button>
                 </form>
+
+                {% if google_sso_enabled %}
+                <div class="mt-6 flex items-center gap-3">
+                    <div class="flex-1 border-t border-gray-200"></div>
+                    <span class="text-xs text-gray-400 uppercase">or</span>
+                    <div class="flex-1 border-t border-gray-200"></div>
+                </div>
+                <a href="{{ url_for('main.login_google') }}" class="btn btn-outline w-full py-3 text-base mt-6 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.4 29.4 35.5 24 35.5c-6.9 0-12.5-5.6-12.5-12.5S17.1 10.5 24 10.5c3.1 0 5.9 1.1 8.1 3l5.7-5.7C34.6 4.5 29.6 2.5 24 2.5 12.7 2.5 3.5 11.7 3.5 23S12.7 43.5 24 43.5 44.5 34.3 44.5 23c0-.9-.1-1.7-.2-2.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.1 8.1 3l5.7-5.7C34.6 7 29.6 5 24 5c-7.7 0-14.3 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 43.5c5.5 0 10.4-1.9 14.3-5.2l-6.6-5.4C29.6 34.5 26.9 35.5 24 35.5c-5.3 0-9.8-3.1-11.3-7.7l-6.6 5.1C9.6 39.1 16.3 43.5 24 43.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.7 2.1-2.1 3.9-3.9 5.2l6.6 5.4C41.6 36 44.5 30.5 44.5 23c0-.9-.1-1.7-.2-2.5z"/></svg>
+                    Sign in with Google
+                </a>
+                {% endif %}
 
                 <!-- Additional Info -->
                 <div class="mt-6 pt-6 border-t border-gray-200">

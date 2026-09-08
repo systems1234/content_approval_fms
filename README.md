@@ -82,10 +82,44 @@ flask_crm/
 ## Configuration
 
 - **Environment Variables**
-  - `SECRET_KEY` (Pin in `.env` or export in shell)
-  - `DATABASE_URL` (for production, Cloud SQL URI)
+   - `SECRET_KEY` (pin in `.env` or export in shell)
+   - `BIGQUERY_PROJECT` (default: `mis-gempundit`)
+   - `BIGQUERY_DATASET` (default: `Content_FMS`)
+   - `GOOGLE_APPLICATION_CREDENTIALS_JSON` (service-account JSON stored as a secret)
+   - `GCS_BUCKET` (reserved for durable upload integration)
 
 - **Tailwind**: Modify `tailwind.config.js` for additional paths
+
+### BigQuery Users Table
+
+Create the authentication table once in BigQuery using [bigquery_users.sql](bigquery_users.sql).
+The existing workflow tables are read and joined by `Unique_Key`. New workflow
+events are appended to the relevant stage table.
+
+## Deploy to Vercel
+
+Vercel can run the Flask web handler through `api/index.py`. Before deploying,
+configure external services because Vercel's filesystem is temporary:
+
+1. Push this repository to GitHub and import it into Vercel.
+2. In Vercel project settings, add these environment variables for Production:
+   - `SECRET_KEY`: a long random value
+   - `BIGQUERY_PROJECT`: `mis-gempundit`
+   - `BIGQUERY_DATASET`: `Content_FMS`
+   - `BIGQUERY_USERS_TABLE`: `Users`
+   - `GOOGLE_APPLICATION_CREDENTIALS_JSON`: the complete service-account JSON
+   - `GCS_BUCKET`: your Google Cloud Storage bucket name
+   - `FLASK_ENV`: `production`
+3. Deploy the project. Vercel uses `vercel.json` and the Python dependencies in `requirements.txt`.
+4. No database migration is required. Run [bigquery_users.sql](bigquery_users.sql)
+   once in BigQuery, then create the first admin with:
+   ```powershell
+   .\\.venv\\Scripts\\python.exe create_bigquery_admin.py
+   ```
+
+The Vercel service account must have BigQuery Job User, BigQuery Data Editor,
+and Storage Object Admin permissions. Never commit the service-account JSON or
+password files; enter them only as encrypted Vercel environment variables.
 
 ## Deployment to Google Cloud
 

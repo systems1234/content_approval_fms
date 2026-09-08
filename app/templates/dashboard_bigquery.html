@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Content Dashboard - GemPundit{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div><h1 class="text-3xl font-bold text-gray-900">Content Dashboard</h1><p class="text-gray-600 mt-1">BigQuery workflow records</p></div>
+        {% if current_user.is_manager() %}<a href="{{ url_for('main.create_content') }}" class="btn btn-primary">Create Content</a>{% endif %}
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="card"><div class="card-body"><p class="text-sm text-gray-600">Total Records</p><p class="text-2xl font-bold">{{ records|length }}</p></div></div>
+        <div class="card"><div class="card-body"><p class="text-sm text-gray-600">Pending</p><p class="text-2xl font-bold text-yellow-600">{{ summary_metrics.total_pending }}</p></div></div>
+        <div class="card"><div class="card-body"><p class="text-sm text-gray-600">Under Review</p><p class="text-2xl font-bold text-blue-600">{{ summary_metrics.under_audit }}</p></div></div>
+        <div class="card"><div class="card-body"><p class="text-sm text-gray-600">Published</p><p class="text-2xl font-bold text-green-600">{{ summary_metrics.completed_count }}</p></div></div>
+    </div>
+    <div>
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Approval Workflow</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{{ url_for('main.approvals') }}" class="card hover:shadow-lg transition"><div class="card-body"><p class="text-sm text-gray-600">Pending Approval</p><p class="text-2xl font-bold text-yellow-600">{{ workflow_summary.pending_approval }}</p></div></a>
+            <a href="{{ url_for('main.my_tasks') }}" class="card hover:shadow-lg transition"><div class="card-body"><p class="text-sm text-gray-600">My Tasks</p><p class="text-2xl font-bold text-blue-600">{{ workflow_summary.my_tasks }}</p></div></a>
+            <a href="{{ url_for('main.workflow_all') }}" class="card hover:shadow-lg transition"><div class="card-body"><p class="text-sm text-gray-600">In Progress (loop)</p><p class="text-2xl font-bold text-indigo-600">{{ workflow_summary.in_progress }}</p></div></a>
+            <a href="{{ url_for('main.workflow_all') }}" class="card hover:shadow-lg transition"><div class="card-body"><p class="text-sm text-gray-600">Completed</p><p class="text-2xl font-bold text-green-600">{{ workflow_summary.completed }}</p></div></a>
+        </div>
+    </div>
+    <div class="card"><div class="card-body">
+        <form method="get"><input name="search" value="{{ search_query }}" class="form-input" placeholder="Search Unique_Key or category"><button class="btn btn-primary mt-3">Search</button></form>
+    </div></div>
+    <div class="card overflow-x-auto"><table class="min-w-full"><thead><tr class="border-b"><th class="px-4 py-3 text-left">Unique Key</th><th class="px-4 py-3 text-left">Category</th><th class="px-4 py-3 text-left">Stage</th><th class="px-4 py-3 text-left">Status</th></tr></thead><tbody>
+    {% for record in records %}<tr class="border-b hover:bg-gray-50"><td class="px-4 py-3"><a class="text-blue-600" href="{{ url_for('main.content_detail', unique_key=record.unique_key) }}">{{ record.unique_key }}</a></td><td class="px-4 py-3">{{ record.category }}</td><td class="px-4 py-3">{{ record.source_table }}</td><td class="px-4 py-3">{{ record.status.replace('_', ' ').title() }}</td></tr>{% else %}<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">No content records found.</td></tr>{% endfor %}
+    </tbody></table></div>
+</div>
+{% endblock %}

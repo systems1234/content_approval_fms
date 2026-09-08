@@ -6,21 +6,20 @@ load_dotenv()
 class Config:
     """Base configuration"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Database configuration
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
-        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    BIGQUERY_PROJECT = os.environ.get('BIGQUERY_PROJECT', 'mis-gempundit')
+    BIGQUERY_DATASET = os.environ.get('BIGQUERY_DATASET', 'Content_FMS')
+    BIGQUERY_USERS_TABLE = os.environ.get('BIGQUERY_USERS_TABLE', 'Users')
+    GCS_BUCKET = os.environ.get('GCS_BUCKET')
 
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'sqlite:///crm.db'
+    # Google Workspace SSO (Sign in with Google, restricted to one domain)
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+    GOOGLE_WORKSPACE_DOMAIN = os.environ.get('GOOGLE_WORKSPACE_DOMAIN', 'gempundit.com')
+    GOOGLE_SSO_ENABLED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
 
-    # SQLAlchemy engine options for Cloud Run
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 5,
-        'pool_recycle': 300,
-        'pool_pre_ping': True
-    }
+    # Shared-secret auth for the external keyword-search / content-writer API webhooks
+    WORKFLOW_API_KEY = os.environ.get('WORKFLOW_API_KEY')
 
     # Flask-WTF configuration
     WTF_CSRF_ENABLED = True
@@ -39,12 +38,10 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
-    SQLALCHEMY_ECHO = True
 
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    SQLALCHEMY_ECHO = False
 
 config = {
     'development': DevelopmentConfig,

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Workflow Step Templates - FMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Workflow Step Templates</h1>
+            <p class="mt-1 text-sm text-gray-600">Define workflow steps with TAT for task creation</p>
+        </div>
+        <a href="{{ url_for('main.create_step_template') }}" class="btn btn-primary">
+            <svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Step Template
+        </a>
+    </div>
+
+    <!-- Step Templates Table -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        {% if templates %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Step Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TAT (Hours)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requires Audit</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for template in templates %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold">
+                                {{ template.step_order }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ template.name }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {{ template.description if template.description else '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ template.tat_hours }}
+                            <span class="text-gray-500 text-xs">
+                                ({{ (template.tat_hours / 24)|round(1) }} days)
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {% if template.requires_audit %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                                Yes
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                                No
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {% if template.is_active %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                Active
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                                Inactive
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{{ url_for('main.edit_step_template', template_id=template.id) }}"
+                               class="text-blue-600 hover:text-blue-800 mr-3">
+                                Edit
+                            </a>
+                            <form method="POST" action="{{ url_for('main.delete_step_template', template_id=template.id) }}"
+                                  class="inline-block"
+                                  onsubmit="return confirm('Are you sure you want to delete this step template?');">
+                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border-t border-blue-100 px-6 py-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        These step templates are used when creating new tasks. Each task will have workflow steps based on these templates, with TAT calculated according to business hours and holidays.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No step templates configured</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by adding your first workflow step template.</p>
+            <div class="mt-6">
+                <a href="{{ url_for('main.create_step_template') }}" class="btn btn-primary">
+                    Add Step Template
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Back Link -->
+    <div class="flex justify-start">
+        <a href="{{ url_for('main.dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm">
+            &larr; Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

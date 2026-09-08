@@ -1,3 +1,11 @@
+temp_secret.txt
+admin*.txt
+db_*.txt
+temp_*.txt
+correct_db_url.txt
+service_config.txt
+detail.txt
+.claude/settings.local.json
 # Python
 __pycache__/
 *.py[cod]
@@ -45,9 +53,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Tailwind
-app/static/css/output.css
 
 # Database
 *.sqlite

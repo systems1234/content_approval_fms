@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - GemPundit{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">{{ title }}</h1>
+        <p class="text-gray-600 mt-1">Content approval workflow{% if show_all %} &mdash; every request, any stage{% endif %}</p>
+    </div>
+    <div class="card overflow-x-auto">
+        <table class="min-w-full">
+            <thead>
+                <tr class="border-b">
+                    <th class="px-4 py-3 text-left">Unique Key</th>
+                    <th class="px-4 py-3 text-left">Category</th>
+                    <th class="px-4 py-3 text-left">Stage</th>
+                    <th class="px-4 py-3 text-left">Assigned To</th>
+                    <th class="px-4 py-3 text-left">Revision</th>
+                    <th class="px-4 py-3 text-left">Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3"><a class="text-blue-600" href="{{ url_for('main.workflow_detail', unique_key=item.unique_key) }}">{{ item.unique_key }}</a></td>
+                    <td class="px-4 py-3">{{ item.category or '-' }}</td>
+                    <td class="px-4 py-3">
+                        <span class="badge
+                            {% if item.stage == 'COMPLETED' %}bg-green-100 text-green-800
+                            {% elif item.stage == 'DELETED' %}bg-gray-200 text-gray-600
+                            {% elif item.stage == 'REWRITE_REQUESTED' %}bg-red-100 text-red-800
+                            {% elif item.stage in ('DRAFT_RECEIVED', 'SUBMITTED') %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ item.stage_label }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">{{ item.assignee_email or '-' }}</td>
+                    <td class="px-4 py-3">{{ item.revision_number }}</td>
+                    <td class="px-4 py-3">{{ item.updated_at.strftime('%b %d, %Y %H:%M') if item.updated_at else '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">{{ empty_message }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

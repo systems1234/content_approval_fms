@@ -27,28 +27,10 @@
                            class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600 transition">
                             Dashboard
                         </a>
-                        {% if current_user.is_manager() %}
-                        <a href="{{ url_for('main.create_task') }}"
-                           class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
-                            Create Task
-                        </a>
-                        <a href="{{ url_for('main.reports') }}"
-                           class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
-                            Reports
-                        </a>
-                        {% endif %}
-                        {% if current_user.is_auditor() %}
-                        <a href="{{ url_for('main.audit_dashboard') }}"
-                           class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
-                            Audit Dashboard
-                        </a>
-                        {% endif %}
-                        {% if current_user.is_admin() %}
-                        <a href="{{ url_for('main.users') }}"
-                           class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">
-                            Users
-                        </a>
-                        {% endif %}
+                        {% if current_user.is_manager() %}<a href="{{ url_for('main.create_content') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">Create Content</a>{% endif %}
+                        {% if current_user.is_approver() %}<a href="{{ url_for('main.approvals') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">Approvals</a>{% endif %}
+                        <a href="{{ url_for('main.my_tasks') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">My Tasks</a>
+                        <a href="{{ url_for('main.workflow_all') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 transition">All Requests</a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -76,28 +58,10 @@
                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50">
                     Dashboard
                 </a>
-                {% if current_user.is_manager() %}
-                <a href="{{ url_for('main.create_task') }}"
-                   class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
-                    Create Task
-                </a>
-                <a href="{{ url_for('main.reports') }}"
-                   class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
-                    Reports
-                </a>
-                {% endif %}
-                {% if current_user.is_auditor() %}
-                <a href="{{ url_for('main.audit_dashboard') }}"
-                   class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
-                    Audit Dashboard
-                </a>
-                {% endif %}
-                {% if current_user.is_admin() %}
-                <a href="{{ url_for('main.users') }}"
-                   class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
-                    Users
-                </a>
-                {% endif %}
+                {% if current_user.is_manager() %}<a href="{{ url_for('main.create_content') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Create Content</a>{% endif %}
+                {% if current_user.is_approver() %}<a href="{{ url_for('main.approvals') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Approvals</a>{% endif %}
+                <a href="{{ url_for('main.my_tasks') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">My Tasks</a>
+                <a href="{{ url_for('main.workflow_all') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">All Requests</a>
             </div>
         </div>
     </nav>

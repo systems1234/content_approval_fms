@@ -36,11 +36,10 @@ RUN useradd -m -u 1000 appuser && \
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (gcc is needed to build the cryptography wheel on slim images)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc \
-    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
