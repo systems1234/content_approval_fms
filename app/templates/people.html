@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% set wrap = 'narrow' %}
+{% block title %}People{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>People</h1>
+    <p>Who can sign in, and what they're allowed to do.</p>
+  </div>
+</div>
+
+<div class="table" style="--cols: minmax(0,1.4fr) minmax(0,1.4fr) 120px 110px">
+  <div class="thead"><div>Name</div><div>Email</div><div>Role</div><div class="right">Access</div></div>
+  {% for person in people %}
+  <div class="row">
+    <div class="cell key">{{ person.username }}{% if person.id == current_user.id %} <span class="src">· you</span>{% endif %}</div>
+    <div class="cell" data-label="Email">{{ person.email }}</div>
+    <div class="cell" data-label="Role"><span class="badge {{ 'accent' if person.role in ('admin', 'approver') }}">{{ person.role_label }}</span></div>
+    <div class="cell right" data-label="Access">
+      {% if person.id == current_user.id %}
+        <span class="src">—</span>
+      {% else %}
+      <form method="post" action="{{ url_for('main.toggle_person', user_id=person.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="active" value="{{ '0' if person.is_active else '1' }}">
+        <button class="btn quiet" type="submit">{{ 'Revoke' if person.is_active else 'Restore' }}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card" style="margin-top:18px">
+  <h2>Add someone, or change a role</h2>
+  <p>Reuse an existing email to change that person's role — the newest entry wins.</p>
+  <form method="post" action="{{ url_for('main.save_person') }}" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div>
+      <label class="lab" for="email">Work email</label>
+      <input class="field" type="email" name="email" id="email" required placeholder="name@gempundit.com">
+    </div>
+    <div>
+      <label class="lab" for="username">Name <span class="hint">· optional</span></label>
+      <input class="field" name="username" id="username" placeholder="Taken from the email if left blank">
+    </div>
+    <div>
+      <label class="lab" for="role">Role</label>
+      <select class="field" name="role" id="role">
+        <option value="writer">Writer — receives content to rewrite</option>
+        <option value="approver">Approver — decides on drafts and submissions</option>
+        <option value="viewer">Viewer — read-only</option>
+        <option value="admin">Admin — everything, plus this screen</option>
+      </select>
+    </div>
+    <button class="btn primary" type="submit">Save</button>
+  </form>
+</div>
+
+{% endblock %}
