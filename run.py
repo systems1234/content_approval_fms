@@ -1,4 +1,4 @@
-"""Local dev server. Production (Vercel) uses api/index.py."""
+"""Local dev server. Production (Vercel) uses main.py at the repo root."""
 from app import create_app
 
 app = create_app()
