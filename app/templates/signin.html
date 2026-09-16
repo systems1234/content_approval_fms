@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+
+{% block body %}
+<div class="signin">
+  <div class="box">
+    <a class="brand" style="justify-content:center;font-size:22px" href="{{ url_for('main.signin') }}">
+      <b style="font-size:22px">content</b><span style="font-size:13px">approval</span>
+    </a>
+    <p class="tag">Every draft, from the writer's first pass to Vivek's final yes.</p>
+
+    <div class="panel">
+      {% if sso_ready %}
+        <h1>Sign in</h1>
+        <p class="lede">Use your {{ domain }} Google account. Access is granted per person, so if you're new here an admin adds you first.</p>
+        <a class="btn wide" href="{{ url_for('main.signin_google') }}">
+          <span class="g-dot">G</span> Continue with Google
+        </a>
+      {% else %}
+        <h1>Sign-in is not switched on</h1>
+        <p class="lede" style="margin-bottom:0">
+          Google sign-in has no credentials yet, and this app has no other way in.
+          Set <span class="mono">GOOGLE_CLIENT_ID</span> and <span class="mono">GOOGLE_CLIENT_SECRET</span>, then redeploy.
+        </p>
+      {% endif %}
+    </div>
+
+    <p class="foot">Restricted to {{ domain }}.<br>Locked out? Ask an admin to check your access.</p>
+  </div>
+</div>
+{% endblock %}

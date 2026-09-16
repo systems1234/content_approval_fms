@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Content FMS{% endblock %} · GemPundit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v='2') }}">
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<header class="top">
+  <div class="top-left">
+    <a class="brand" href="{{ url_for('main.dashboard') }}">
+      <b>content</b><span>approval</span>
+    </a>
+    <nav class="nav">
+      <a href="{{ url_for('main.dashboard') }}" class="{{ 'on' if request.endpoint == 'main.dashboard' }}">Overview</a>
+      <a href="{{ url_for('main.queue', scope='needs-you') }}" class="{{ 'on' if request.endpoint in ('main.queue', 'main.content') }}">Queue</a>
+      {% if current_user.is_admin() %}
+      <a href="{{ url_for('main.people') }}" class="{{ 'on' if request.endpoint == 'main.people' }}">People</a>
+      {% endif %}
+    </nav>
+  </div>
+  <div class="who">
+    <div class="avatar">{{ current_user.initials }}</div>
+    <div class="who-name">
+      <b>{{ current_user.username }}</b>
+      <span>{{ current_user.role_label }}</span>
+    </div>
+    <a class="btn quiet" href="{{ url_for('main.signout') }}">Sign out</a>
+  </div>
+</header>
+{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flashes">
+    {% for category, message in messages %}
+    <div class="flash {{ category if category in ('good', 'warn', 'danger') else 'warn' }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+{% block body %}
+<main>
+  <div class="wrap {{ wrap|default('') }}">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+{% endblock %}
+
+<footer>GemPundit · Content FMS · all times IST</footer>
+</body>
+</html>

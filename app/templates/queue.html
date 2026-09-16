@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Queue{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Queue</h1>
+    <p>{{ items|length }} of {{ counts.open + counts.completed + counts.closed }} requests</p>
+  </div>
+  {% if current_user.can_approve() %}
+  <form method="post" action="{{ url_for('main.sync') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Bring in new drafts</button>
+  </form>
+  {% endif %}
+</div>
+
+<form class="search" method="get" action="{{ url_for('main.queue') }}">
+  <input type="hidden" name="scope" value="{{ scope }}">
+  <input name="q" value="{{ search }}" placeholder="Search by key, category, keyword or writer">
+  <button type="submit">Search</button>
+</form>
+
+<div class="chips">
+  {% for key, label in scopes %}
+  <a class="chip {{ 'on' if key == scope }}"
+     href="{{ url_for('main.queue', scope=key, q=search or None) }}">
+    {{ label }} <span class="pill">{{ scope_counts[key] }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+{% if items %}
+<div class="table" style="--cols: minmax(0,1.6fr) minmax(0,.9fr) 160px minmax(0,1fr) 70px 110px">
+  <div class="thead">
+    <div>Content</div><div>Category</div><div>Stage</div><div>With</div><div>Rev</div><div class="right">Updated</div>
+  </div>
+  {% for item in items %}
+  <a class="row" href="{{ url_for('main.content', unique_key=item.unique_key) }}">
+    <div class="cell key">{{ item.unique_key }}</div>
+    <div class="cell" data-label="Category">{{ item.category or '—' }}</div>
+    <div class="cell" data-label="Stage"><span class="badge {{ item.tone }}">{{ item.stage_label }}</span></div>
+    <div class="cell {{ 'mine' if item.assignee_user_id == current_user.id }}" data-label="With">{{ item.assignee_email or '—' }}</div>
+    <div class="cell" data-label="Revision">{{ item.revision_number }}</div>
+    <div class="cell right" data-label="Updated">{{ item.updated_at|ago }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <b>{% if search %}No match{% else %}Nothing in this view{% endif %}</b>
+  <span>
+    {% if search %}Nothing here matches “{{ search }}”. Try a shorter term, or clear the search.
+    {% else %}Pick another filter above, or wait for the next batch of drafts.{% endif %}
+  </span>
+  {% if search %}<a class="btn" href="{{ url_for('main.queue', scope=scope) }}">Clear search</a>{% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

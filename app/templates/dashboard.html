@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Overview</h1>
+    <p>Where every piece of content stands right now.</p>
+  </div>
+  {% if current_user.can_approve() %}
+  <form method="post" action="{{ url_for('main.sync') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit" {{ 'disabled' if not ai_ready }}>Bring in new drafts</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if not ai_ready and current_user.is_admin() %}
+<div class="notice" style="margin-bottom:16px">
+  No AI table is wired up yet. Set <span class="mono">AI_SOURCE_TABLE</span> and
+  <span class="mono">AI_COLUMN_MAP</span> and drafts will start arriving on their own.
+  Until then the <span class="mono">/api/drafts</span> endpoint still works.
+</div>
+{% endif %}
+
+<div class="stats">
+  <a class="stat {{ 'is-live' if counts.needs_you else 'is-zero' }}" href="{{ url_for('main.queue', scope='needs-you') }}">
+    <div class="n">{{ counts.needs_you }}</div>
+    <div class="k">On your desk</div>
+  </a>
+  <a class="stat {{ 'is-live' if counts.approvals else 'is-zero' }}" href="{{ url_for('main.queue', scope='approvals') }}">
+    <div class="n">{{ counts.approvals }}</div>
+    <div class="k">Waiting on approval</div>
+  </a>
+  <a class="stat {{ 'is-live' if counts.writing else 'is-zero' }}" href="{{ url_for('main.queue', scope='writing') }}">
+    <div class="n">{{ counts.writing }}</div>
+    <div class="k">With writers</div>
+  </a>
+  <a class="stat" href="{{ url_for('main.queue', scope='completed') }}">
+    <div class="n">{{ counts.completed }}</div>
+    <div class="k">Completed</div>
+  </a>
+</div>
+
+<h2 class="eyebrow" style="margin:26px 0 10px">On your desk</h2>
+{% if mine %}
+<div class="table" style="--cols: minmax(0,1.8fr) minmax(0,1fr) 150px 110px">
+  {% for item in mine %}
+  <a class="row" href="{{ url_for('main.content', unique_key=item.unique_key) }}">
+    <div class="cell key">{{ item.unique_key }}</div>
+    <div class="cell" data-label="Category">{{ item.category or '—' }}</div>
+    <div class="cell" data-label="Stage"><span class="badge {{ item.tone }}">{{ item.stage_label }}</span></div>
+    <div class="cell right" data-label="Updated">{{ item.updated_at|ago }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <b>Nothing waiting on you</b>
+  <span>When a draft needs your decision, or a rewrite lands in your name, it shows up here.</span>
+</div>
+{% endif %}
+
+<h2 class="eyebrow" style="margin:26px 0 10px">Latest activity</h2>
+{% if recent %}
+<div class="table" style="--cols: minmax(0,1.8fr) minmax(0,1fr) 150px 110px">
+  {% for item in recent %}
+  <a class="row" href="{{ url_for('main.content', unique_key=item.unique_key) }}">
+    <div class="cell key">{{ item.unique_key }}</div>
+    <div class="cell" data-label="With">{{ item.assignee_email or '—' }}</div>
+    <div class="cell" data-label="Stage"><span class="badge {{ item.tone }}">{{ item.stage_label }}</span></div>
+    <div class="cell right" data-label="Updated">{{ item.updated_at|ago }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <b>No content yet</b>
+  <span>Nothing has entered the workflow. Once the AI starts writing drafts, they land here for approval.</span>
+</div>
+{% endif %}
+
+{% endblock %}
