@@ -240,7 +240,7 @@ export default async function ContentPage({
               <div className="card">
                 <h2 style={{ color: 'var(--danger-ink)' }}>Reject AI draft</h2>
                 <p>Permanently closes this request. The AI brief stays in AI_Content_Queue for reference.</p>
-                <form action={doReject} className="stack" onSubmit="return confirm('Reject this AI draft? The request closes permanently.')">
+                <form action={doReject} className="stack">
                   <textarea className="field" name="comment" rows={2} placeholder="Why it's being rejected" />
                   <button className="btn danger" type="submit">Reject and close</button>
                 </form>
